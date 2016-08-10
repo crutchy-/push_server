@@ -157,7 +157,7 @@ function on_msg($client_key,$data)
     {
       return; # invalid frame encountered - connection failed
     }*/
-    var_dump($frame);
+    var_dump($frame["payload"]);
   }
 }
 
@@ -205,13 +205,13 @@ function decode_frame($client_key,$frame_data)
 */
   $frame=array();
   $F=unpack("C*",$frame_data);
-  var_dump($F);
+  #var_dump($F);
   $frame["raw"]=$frame_data;
   $frame["fin"]=(($F[1] & 128)==128);
   $frame["opcode"]=$F[1] & 15;
   $frame["mask"]=(($F[2] & 128)==128);
   $frame["length"]=$F[2] & 127;
-  $L=1; # number of bytes for payload length
+  $L=0; # number of additional bytes for payload length
   if ($frame["length"]==126)
   {
     # pack 16-bit network byte ordered (big-endian) unsigned int
@@ -225,12 +225,12 @@ function decode_frame($client_key,$frame_data)
     $L=8;
   }
   $frame["mask_key"]=array();
-  $N=1+$L+1; # first payload byte (no mask)
+  $N=2+$L+1; # first payload byte (no mask)
   if ($frame["mask"]==True)
   {
     for ($i=1;$i<=4;$i++)
     {
-      $frame["mask_key"][]=$F[1+$L+$i];
+      $frame["mask_key"][]=$F[2+$L+$i];
     }
     $N+=4; # first payload byte (with mask)
   }
