@@ -152,12 +152,22 @@ function on_msg($client_key,$data)
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
   {
-    $frame=decode_frame($client_key,$data);
-    /*if ($msg===False)
+    $frame=decode_frame($data);
+    switch ($frame["opcode"])
     {
-      return; # invalid frame encountered - connection failed
-    }*/
-    var_dump($frame["payload"]);
+      case 1: # text frame
+        var_dump($frame["payload"]);
+        break;
+      case 8: # connection close
+        close_client($client_key);
+        break;
+      case 9: # ping
+        # TODO: SEND PONG FRAME
+        break;
+      default:
+        # TODO: SEND CLOSE FRAME
+        close_client($client_key);
+    }
   }
 }
 
@@ -177,32 +187,9 @@ function encode_control_frame($opcode,$payload)
 
 #####################################################################################################
 
-function decode_frame($client_key,$frame_data)
+function decode_frame($frame_data)
 {
   # https://tools.ietf.org/html/rfc6455
-/*
-  switch ($opcode)
-  {
-    case 0: # continuation frame
-      break;
-    case 1: # text frame
-      break;
-    case 8: # connection close
-      break;
-    case 9: # ping
-      break;
-    case 10: # pong
-      break;
-    default:
-      close_client($client_key);
-      return False;
-  }
-  if ($fin==0)
-  {
-    # frame is part of a fragmented message - add to frame buffer till the fin frame is encountered
-    # $connections[$client_key]["buffer"][]
-  }
-*/
   $frame=array();
   $F=unpack("C*",$frame_data);
   #var_dump($F);
