@@ -4,6 +4,8 @@
 
 # for help with ssl server: http://php.net/manual/en/function.stream-socket-server.php#118419
 
+# for testing: https://github.com/minimaxir/big-list-of-naughty-strings/blob/master/blns.txt
+
 #####################################################################################################
 
 error_reporting(E_ALL);
@@ -36,7 +38,7 @@ while (True)
   $read=array(STDIN);
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,100000);
+  $change_count=stream_select($read,$write,$except,0,200000);
   if ($change_count!==False)
   {
     if ($change_count>=1)
@@ -51,7 +53,7 @@ while (True)
   $read=$sockets;
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,100000);
+  $change_count=stream_select($read,$write,$except,0,200000);
   if ($change_count===False)
   {
     show_message("stream_select failed",True);
@@ -70,7 +72,7 @@ while (True)
       $sockets[]=$client;
       $client_key=array_search($client,$sockets,True);
       $new_connection=array();
-      $new_connection["mode"]="http";
+      $new_connection["state"]="CONNECTING";
       $connections[$client_key]=$new_connection;
       show_message("client connected");
     }
@@ -129,8 +131,11 @@ function on_msg($client_key,$data)
 {
   global $connections;
   show_message("from client:",True);
-  if ($connections[$client_key]["mode"]=="http")
+  if ($connections[$client_key]["state"]=="CONNECTING")
   {
+    # TODO: CHECK "Host" HEADER (COMPARE TO CONFIG SETTING)
+    # TODO: CHECK "Origin" HEADER (COMPARE TO CONFIG SETTING)
+    # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
     var_dump($data);
     $headers=extract_headers($data);
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
@@ -138,69 +143,111 @@ function on_msg($client_key,$data)
     $msg="HTTP/1.1 101 Switching Protocols".PHP_EOL;
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
-    $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept.PHP_EOL;
-    $msg.="Sec-WebSocket-Protocol: chat\r\n\r\n";
+    $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
     show_message("to client:",True);
     var_dump($msg);
-    $connections[$client_key]["mode"]="websocket";
+    $connections[$client_key]["state"]="OPEN";
+    $connections[$client_key]["buffer"]=array();
     do_reply($client_key,$msg);
   }
-  elseif ($connections[$client_key]["mode"]=="websocket")
+  elseif ($connections[$client_key]["state"]=="OPEN")
   {
-    $data=decode_frame($data);
-    var_dump($data);
+    $frame=decode_frame($client_key,$data);
+    /*if ($msg===False)
+    {
+      return; # invalid frame encountered - connection failed
+    }*/
+    var_dump($frame);
   }
 }
 
 #####################################################################################################
 
-function decode_frame($data)
+function encode_text_data_frame($payload)
 {
-  # message = "hello" (5 chars)
-  # message received is 11 chars
-  # message consists of single frame
-  # mask = 4 bytes
-  # message + frame = 9 bytes
-  # leaves 2 bytes for payload length and opcode etc
-/*
-bit legend: name(numbits=>testval[,meaning])
-array(11) {
-  [1]=>
-  int(129) # fin(1=>1)+rsv1(1=>0)+rsv2(1=>0)+rsv3(1=>0)+opcode(4=>0001,text frame) => "10000001"
-  [2]=>
-  int(133) # mask(1=>1)+ payloadlength(7=>0000101,5 chars) => "10000101"
-  [3]=>
-  int(5) # mask byte 1
-  [4]=>
-  int(115) # mask byte 2
-  [5]=>
-  int(34) # mask byte 3
-  [6]=>
-  int(3) # mask byte 4
-  [7]=>
-  int(109) # masked payload byte 1
-  [8]=>
-  int(22) # masked payload byte 2
-  [9]=>
-  int(78) # masked payload byte 3
-  [10]=>
-  int(111) # masked payload byte 4
-  [11]=>
-  int(106) # masked payload byte 5
+
 }
-$unmasked_char[$i] = $masked_char[$i] xor $mask[$i % 4]
-*/
-  $chars=unpack("C*",$data);
-  $mask=array_slice($chars,2,4);
-  $mask=array_values($mask);
-  $message=array_slice($chars,6,5);
-  $message=array_values($message);
-  for ($i=0;$i<5;$i++)
+
+#####################################################################################################
+
+function encode_control_frame($opcode,$payload)
+{
+
+}
+
+#####################################################################################################
+
+function decode_frame($client_key,$frame_data)
+{
+  # https://tools.ietf.org/html/rfc6455
+/*
+  switch ($opcode)
   {
-    $message[$i]=$message[$i]^$mask[$i%4];
-    $message[$i]=chr($message[$i]);
+    case 0: # continuation frame
+      break;
+    case 1: # text frame
+      break;
+    case 8: # connection close
+      break;
+    case 9: # ping
+      break;
+    case 10: # pong
+      break;
+    default:
+      close_client($client_key);
+      return False;
   }
-  return implode("",$message);
+  if ($fin==0)
+  {
+    # frame is part of a fragmented message - add to frame buffer till the fin frame is encountered
+    # $connections[$client_key]["buffer"][]
+  }
+*/
+  $frame=array();
+  $F=unpack("C*",$frame_data);
+  var_dump($F);
+  $frame["raw"]=$frame_data;
+  $frame["fin"]=(($F[1] & 128)==128);
+  $frame["opcode"]=$F[1] & 15;
+  $frame["mask"]=(($F[2] & 128)==128);
+  $frame["length"]=$F[2] & 127;
+  $L=1; # number of bytes for payload length
+  if ($frame["length"]==126)
+  {
+    # pack 16-bit network byte ordered (big-endian) unsigned int
+    $frame["length"]=($F[3]<<8)+$F[4];
+    $L=2;
+  }
+  elseif ($frame["length"]==127)
+  {
+    # pack 64-bit network byte ordered (big-endian) unsigned int
+    $frame["length"]=($F[3]<<56)+($F[4]<<48)+($F[5]<<40)+($F[6]<<32)+($F[7]<<24)+($F[8]<<16)+($F[9]<<8)+$F[10];
+    $L=8;
+  }
+  $frame["mask_key"]=array();
+  $N=1+$L+1; # first payload byte (no mask)
+  if ($frame["mask"]==True)
+  {
+    for ($i=1;$i<=4;$i++)
+    {
+      $frame["mask_key"][]=$F[1+$L+$i];
+    }
+    $N+=4; # first payload byte (with mask)
+  }
+  $frame["masked_text"]=substr($frame_data,$N-1,$frame["length"]);
+  $frame["masked_bytes"]=array_values(array_slice($F,$N-1,$frame["length"]));
+  $frame["payload"]="";
+  if ($frame["mask"]==True)
+  {
+    $frame["payload"]=$frame["masked_bytes"];
+    for ($i=0;$i<$frame["length"];$i++)
+    {
+      $frame["payload"][$i]=$frame["payload"][$i]^$frame["mask_key"][$i%4];
+      $frame["payload"][$i]=chr($frame["payload"][$i]);
+    }
+    $frame["payload"]=implode("",$frame["payload"]);
+  }
+  return $frame;
 }
 
 #####################################################################################################
