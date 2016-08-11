@@ -155,7 +155,11 @@ function on_msg($client_key,$data)
     $frame=decode_frame($data);
     switch ($frame["opcode"])
     {
+      case 0: # continuation frame
+        $connections[$client_key]["buffer"][]=$frame;
+        break;
       case 1: # text frame
+        $connections[$client_key]["buffer"]=array();
         var_dump($frame["payload"]);
         break;
       case 8: # connection close
