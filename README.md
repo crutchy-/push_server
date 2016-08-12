@@ -37,7 +37,9 @@ pip install autobahntestsuite
 
 ## using
 
+set listening port of server to 9001
+
 as non-root user:
 ````
-wstest -m echoclient -w ws://127.0.0.1:50000
+wstest -fuzzingngclient
 ````

@@ -4,8 +4,6 @@
 
 # for help with ssl server: http://php.net/manual/en/function.stream-socket-server.php#118419
 
-# for testing: https://github.com/minimaxir/big-list-of-naughty-strings/blob/master/blns.txt
-
 #####################################################################################################
 
 error_reporting(E_ALL);
@@ -13,19 +11,10 @@ set_time_limit(0);
 ob_implicit_flush();
 date_default_timezone_set("UTC");
 
-if (isset($argv[1])==True)
-{
-  switch ($argv[1])
-  {
-    case "test":
-      run_all_tests();
-      return;
-  }
-}
-
 $sockets=array();
 $connections=array();
 $server=stream_socket_server("tcp://127.0.0.1:9001",$err_no,$err_msg);
+#$server=stream_socket_server("tcp://127.0.0.1:50000",$err_no,$err_msg);
 if ($server===False)
 {
   show_message("could not bind to socket: ".$err_msg,True);
@@ -219,7 +208,7 @@ function decode_frame($frame_data)
 {
   # https://tools.ietf.org/html/rfc6455
   $frame=array();
-  $F=unpack("C*",$frame_data);
+  $F=unpack("C*",$frame_data); # first key is 1 (not 0)
   #var_dump($F);
   $frame["raw"]=$frame_data;
   $frame["fin"]=(($F[1] & 128)==128);
@@ -270,7 +259,12 @@ function decode_frame($frame_data)
 function do_reply($client_key,$msg)
 {
   global $sockets;
-  fwrite($sockets[$client_key],$msg);
+  $total_sent=0;
+  while ($total_sent<strlen($msg))
+  {
+    $written=fwrite($sockets[$client_key],substr($msg,$total_sent));
+    $total_sent+=$written;
+  }
 }
 
 #####################################################################################################
@@ -318,36 +312,6 @@ function get_header($lines,$header)
     }
   }
   return False;
-}
-
-#####################################################################################################
-
-function run_all_tests()
-{
-  $client=stream_socket_client("tcp://127.0.0.1:50000",$err_no,$err_msg);
-  if ($client===False)
-  {
-    show_message("error connecting: ".$err_msg,True);
-    return;
-  }
-  $tests=array("hello","a b","a\na"," ");
-  for ($i=0;$i<count($tests);$i++)
-  {
-    fwrite($client,$tests[$i]);
-    $data=fread($client,1024);
-    show_message("reply: ".$data);
-    if ($data==$tests[$i])
-    {
-      show_message("[SUCCESS] reply: ".$data);
-    }
-    else
-    {
-      show_message("[FAIL] reply: ".$data);
-    }
-    sleep(1);
-  }
-  stream_socket_shutdown($client,STREAM_SHUT_RDWR);
-  fclose($client);
 }
 
 #####################################################################################################
