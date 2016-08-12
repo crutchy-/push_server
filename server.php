@@ -25,7 +25,7 @@ if (isset($argv[1])==True)
 
 $sockets=array();
 $connections=array();
-$server=stream_socket_server("tcp://127.0.0.1:50000",$err_no,$err_msg);
+$server=stream_socket_server("tcp://127.0.0.1:9001",$err_no,$err_msg);
 if ($server===False)
 {
   show_message("could not bind to socket: ".$err_msg,True);
@@ -153,25 +153,37 @@ function on_msg($client_key,$data)
   elseif ($connections[$client_key]["state"]=="OPEN")
   {
     $frame=decode_frame($data);
+    $msg="";
     switch ($frame["opcode"])
     {
       case 0: # continuation frame
         $connections[$client_key]["buffer"][]=$frame;
-        break;
+        if ($frame["fin"]==True)
+        {
+          $msg=coalesce_frames($connections[$client_key]["buffer"]);
+          $connections[$client_key]["buffer"]=array();
+          break;
+        }
+        else
+        {
+          return;
+        }
       case 1: # text frame
-        $connections[$client_key]["buffer"]=array();
-        var_dump($frame["payload"]);
+        $msg=$frame["payload"];
         break;
       case 8: # connection close
         close_client($client_key);
-        break;
+        return;
       case 9: # ping
         # TODO: SEND PONG FRAME
-        break;
+        return;
       default:
         # TODO: SEND CLOSE FRAME
         close_client($client_key);
+        return;
     }
+    var_dump($msg);
+    do_reply($client_key,$msg);
   }
 }
 
@@ -187,6 +199,18 @@ function encode_text_data_frame($payload)
 function encode_control_frame($opcode,$payload)
 {
 
+}
+
+#####################################################################################################
+
+function coalesce_frames(&$buffer)
+{
+  $msg="";
+  for ($i=0;$i<count($buffer);$i++)
+  {
+    $msg.=$buffer[$i]["payload"];
+  }
+  return $msg;
 }
 
 #####################################################################################################
