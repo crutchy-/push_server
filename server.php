@@ -314,21 +314,21 @@ function decode_frame(&$frame_data)
   # https://tools.ietf.org/html/rfc6455
   $frame=array();
   $F=unpack("C".min(14,strlen($frame_data)),$frame_data); # first key is 1 (not 0)
-  $frame["fin"]=(($F[1] & 128)==128);
-  $frame["opcode"]=$F[1] & 15;
-  $frame["mask"]=(($F[2] & 128)==128);
-  $frame["length"]=$F[2] & 127;
+  $frame["fin"]=(($F[1]&128)==128);
+  $frame["opcode"]=$F[1]&15;
+  $frame["mask"]=(($F[2]&128)==128);
+  $length=$F[2]&127;
   $L=0; # number of additional bytes for payload length
-  if ($frame["length"]==126)
+  if ($length==126)
   {
     # pack 16-bit network byte ordered (big-endian) unsigned int
-    $frame["length"]=($F[3]<<8)+$F[4];
+    $length=($F[3]<<8)+$F[4];
     $L=2;
   }
-  elseif ($frame["length"]==127)
+  elseif ($length==127)
   {
     # pack 64-bit network byte ordered (big-endian) unsigned int
-    $frame["length"]=($F[3]<<56)+($F[4]<<48)+($F[5]<<40)+($F[6]<<32)+($F[7]<<24)+($F[8]<<16)+($F[9]<<8)+$F[10];
+    $length=($F[3]<<56)+($F[4]<<48)+($F[5]<<40)+($F[6]<<32)+($F[7]<<24)+($F[8]<<16)+($F[9]<<8)+$F[10];
     $L=8;
   }
   $frame["mask_key"]=array();
@@ -342,11 +342,11 @@ function decode_frame(&$frame_data)
     $offset+=4; # first payload byte (with mask)
   }
   $frame["payload"]="";
-  if ($frame["length"]>0)
+  if ($length>0)
   {
     if ($frame["mask"]==True)
     {
-      for ($i=0;$i<$frame["length"];$i++)
+      for ($i=0;$i<$length;$i++)
       {
         $key=$i+$offset-1;
         if (isset($frame_data[$key])==False)
@@ -357,11 +357,10 @@ function decode_frame(&$frame_data)
       }
     }
     $frame["payload"]=substr($frame_data,$offset-1);
-    if (($frame["opcode"]==8) and ($frame["length"]>=2))
+    if (($frame["opcode"]==8) and ($length>=2))
     {
       $status=unpack("C2",$frame["payload"]);
       $frame["close_status"]=($status[1]<<8)+$status[2];
-      $frame["length"]-=2;
       $frame["payload"]=substr($frame["payload"],2);
     }
     if (preg_match("//u",$frame["payload"])==0)
