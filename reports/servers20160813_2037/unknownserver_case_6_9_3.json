@@ -1,0 +1,131 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "FAILED",
+   "behaviorClose": "UNCLEAN",
+   "case": 102,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send a text message with payload which is valid UTF-8 in one fragment.<br><br>Payload: 0xefbfbf",
+   "droppedByMe": false,
+   "duration": 509,
+   "expectation": "The message is echo'ed back to us.",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "\uffff",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: nq6d8FyPq/UT/3XfNaaMiQ==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: S1OWSfsE0/GsOeKlMgurizOKriE=\r\n\r\n",
+   "id": "6.9.3",
+   "isServer": false,
+   "localCloseCode": 1001,
+   "localCloseReason": "Going Away",
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T06:35:41.325Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "9": 1,
+      "18": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            3,
+            "\uffff"
+         ],
+         1,
+         true,
+         0,
+         "a8bdac39",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            9,
+            "8183a8bdac39470213"
+         ],
+         false
+      ],
+      [
+         "KL",
+         0.5
+      ],
+      [
+         "KLE"
+      ],
+      [
+         "TF",
+         [
+            12,
+            "0x03e9476f696e672041776179"
+         ],
+         8,
+         true,
+         0,
+         "8f6f6674",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "888c8f6f66748c86211be6010154ce18070d"
+         ],
+         false
+      ]
+   ]
+}

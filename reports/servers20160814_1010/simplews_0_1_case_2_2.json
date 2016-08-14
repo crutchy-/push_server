@@ -1,0 +1,154 @@
+{
+   "agent": "SimpleWS/0.1",
+   "behavior": "OK",
+   "behaviorClose": "UNCLEAN",
+   "case": 18,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send ping with small text payload.",
+   "droppedByMe": false,
+   "duration": 406,
+   "expectation": "Pong with payload echo'ed is sent in reply to Ping. Clean close with normal code.",
+   "expected": {
+      "OK": [
+         [
+            "pong",
+            "Hello, world!"
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: wupS4Mb3VQ6ktbEbv3cv5w==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: HoUHlCn1FNnn3SiY6mZP1Ni7lQ8=\r\n\r\n",
+   "id": "2.2",
+   "isServer": false,
+   "localCloseCode": 1002,
+   "localCloseReason": "fragmented control frame",
+   "received": [
+      [
+         "pong",
+         "Hello, world!"
+      ]
+   ],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {
+      "10": 1
+   },
+   "rxOctetStats": {
+      "15": 1,
+      "147": 1
+   },
+   "started": "2016-08-13T14:11:06.465Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "8": 1,
+      "9": 1
+   },
+   "txOctetStats": {
+      "19": 1,
+      "32": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            13,
+            "Hello, world!"
+         ],
+         9,
+         true,
+         0,
+         "de461886",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            19,
+            "898dde461886962374eab16a38f1b13474e2ff"
+         ],
+         false
+      ],
+      [
+         "TI",
+         1
+      ],
+      [
+         "RO",
+         [
+            15,
+            "0a0d48656c6c6f2c20776f726c6421"
+         ]
+      ],
+      [
+         "TF",
+         [
+            26,
+            "0x03ea667261676d656e74656420636f6e74726f6c206672616d65"
+         ],
+         8,
+         true,
+         0,
+         "84eabdb1",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            32,
+            "889a84eabdb18700dbc3e58dd0d4ea9ed8d5a489d2dff098d2dda48ccfd0e98f"
+         ],
+         false
+      ],
+      [
+         "RF",
+         [
+            13,
+            "Hello, world!"
+         ],
+         10,
+         false,
+         0,
+         false,
+         null
+      ]
+   ]
+}

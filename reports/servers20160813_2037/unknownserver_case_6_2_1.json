@@ -1,0 +1,131 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "FAILED",
+   "behaviorClose": "UNCLEAN",
+   "case": 68,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send a valid UTF-8 text message in one fragment.<br><br>MESSAGE:<br>Hello-\u00b5@\u00df\u00f6\u00e4\u00fc\u00e0\u00e1-UTF-8!!<br>48656c6c6f2dc2b540c39fc3b6c3a4c3bcc3a0c3a12d5554462d382121",
+   "droppedByMe": false,
+   "duration": 1006,
+   "expectation": "The message is echo'ed back to us.",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "Hello-\u00b5@\u00df\u00f6\u00e4\u00fc\u00e0\u00e1-UTF-8!!",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: scoUNxqBo58AqS1F+jRSOg==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: Owib//ZaFHa5GGUAgl3EHaT3FNk=\r\n\r\n",
+   "id": "6.2.1",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T06:35:14.100Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "6": 1,
+      "35": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            29,
+            "Hello-\u00b5@\u00df\u00f6\u00e4\u00fc\u00e0\u00e1-UTF-8!!"
+         ],
+         1,
+         true,
+         0,
+         "5615a2fa",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            35,
+            "819d5615a2fa1e70ce963938604f16d63d39e0d60639ead60239f738f7ae10389adb77"
+         ],
+         false
+      ],
+      [
+         "TI",
+         1
+      ],
+      [
+         "TIE"
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         8,
+         true,
+         0,
+         "64f67ed7",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "888064f67ed7"
+         ],
+         false
+      ]
+   ]
+}

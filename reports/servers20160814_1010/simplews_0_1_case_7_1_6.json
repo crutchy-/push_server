@@ -1,0 +1,176 @@
+{
+   "agent": "SimpleWS/0.1",
+   "behavior": "INFORMATIONAL",
+   "behaviorClose": "INFORMATIONAL",
+   "case": 215,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send 256K message followed by close then a ping",
+   "droppedByMe": false,
+   "duration": 525,
+   "expectation": "Case outcome depends on implementation defined close behavior. Message and close frame are sent back to back. If the close frame is processed before the text message write is complete (as can happen in asynchronous processing models) the close frame is processed first and the text message may not be received or may only be partially recieved.",
+   "expected": {
+      "NON-STRICT": [],
+      "OK": [
+         [
+            "message",
+            "Hello World!",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: XbOZRqBnOAJfWiRslzrVqA==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: JSmP7UF7Q416U3JyjIEu42KhpEk=\r\n\r\n",
+   "id": "7.1.6",
+   "isServer": false,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Close was processed before text message could be returned.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "147": 1
+   },
+   "started": "2016-08-13T14:13:20.720Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 2,
+      "8": 1,
+      "9": 1
+   },
+   "txOctetStats": {
+      "6": 1,
+      "8": 1,
+      "18": 1,
+      "240": 1,
+      "262158": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            10,
+            "BAsd7&jh23"
+         ],
+         1,
+         true,
+         0,
+         "541e5c89",
+         262144,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            262158,
+            "81ff0000000000040000541e5c89165f2fed633836e1662d1ec8277a6baf3e766eba165f2fed633836e1662d1ec8277a6baf3e766eba165f2fed633836e1662d ..."
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            12,
+            "Hello World!"
+         ],
+         1,
+         true,
+         0,
+         "a88afe9c",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "818ca88afe9ce0ef92f0c7aaa9f3dae69abd"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         "d8d0506c",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            8,
+            "8882d8d0506cdb38"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         9,
+         true,
+         0,
+         "b0f25d2e",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "8980b0f25d2e"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ]
+   ]
+}

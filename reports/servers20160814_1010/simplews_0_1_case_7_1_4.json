@@ -1,0 +1,122 @@
+{
+   "agent": "SimpleWS/0.1",
+   "behavior": "OK",
+   "behaviorClose": "UNCLEAN",
+   "case": 213,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send text message after sending a close frame.",
+   "droppedByMe": false,
+   "duration": 205,
+   "expectation": "Clean close with normal code. Text message ignored.",
+   "expected": {
+      "OK": []
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: und6euW8YjHAzrPFRd/MTQ==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: xQYGHrzDnBY0JVuhCK90iHbYhQk=\r\n\r\n",
+   "id": "7.1.4",
+   "isServer": false,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "147": 1
+   },
+   "started": "2016-08-13T14:13:19.501Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "8": 1,
+      "18": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         "27ac5db1",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            8,
+            "888227ac5db12444"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            12,
+            "Hello World!"
+         ],
+         1,
+         true,
+         0,
+         "0a8ac6b2",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "818c0a8ac6b242efaade65aa91dd78e6a293"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ]
+   ]
+}

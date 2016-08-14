@@ -1,0 +1,151 @@
+{
+   "agent": "AutobahnServer",
+   "behavior": "NON-STRICT",
+   "behaviorClose": "OK",
+   "case": 29,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send small text message, then send again with <b>RSV = 2</b>, then send Ping.",
+   "droppedByMe": false,
+   "duration": 206,
+   "expectation": "Echo for first message is received, but then connection is failed immediately, since RSV must be 0, when no extension defining RSV meaning has been negotiated. The Pong is not received.",
+   "expected": {
+      "NON-STRICT": [],
+      "OK": [
+         [
+            "message",
+            "Hello, world!",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1002
+      ],
+      "closedByMe": false,
+      "requireClean": false
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: VpSs7qEbQ+o2uZ0Rrej3Ew==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: BsF2piK4ctGIN0B7fQn7B4Nxr+A=\r\n\r\n",
+   "id": "3.2",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "147": 1
+   },
+   "started": "2016-08-14T03:42:28.657Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 2,
+      "9": 1
+   },
+   "txOctetStats": {
+      "6": 1,
+      "19": 2,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            13,
+            "Hello, world!"
+         ],
+         1,
+         true,
+         0,
+         "0d8dc832",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            19,
+            "818d0d8dc83245e8a45e62a1e84562ffa4562c"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            13,
+            "Hello, world!"
+         ],
+         1,
+         true,
+         2,
+         "8b97f169",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            19,
+            "a18d8b97f169c3f29d05e4bbd11ee4e59d0daa"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         9,
+         true,
+         0,
+         "e91aa6b6",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "8980e91aa6b6"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ]
+   ]
+}

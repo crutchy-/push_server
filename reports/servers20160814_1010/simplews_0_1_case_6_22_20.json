@@ -1,0 +1,150 @@
+{
+   "agent": "SimpleWS/0.1",
+   "behavior": "FAILED",
+   "behaviorClose": "UNCLEAN",
+   "case": 188,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send a text message with payload which is valid UTF-8 in one fragment.<br><br>Payload: 0xf29fbfbf",
+   "droppedByMe": false,
+   "duration": 404,
+   "expectation": "The message is echo'ed back to us.",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "\uda3f\udfff",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: E3aTN8vZfJrvC3eMYx0+yQ==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: 4/skswuImKs0CMlnX+G/y7atIIE=\r\n\r\n",
+   "id": "6.22.20",
+   "isServer": false,
+   "localCloseCode": 1002,
+   "localCloseReason": "fragmented control frame",
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {
+      "9": 1
+   },
+   "rxOctetStats": {
+      "6": 1,
+      "147": 1
+   },
+   "started": "2016-08-13T14:12:59.546Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "10": 1,
+      "32": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            4,
+            "\uda3f\udfff"
+         ],
+         1,
+         true,
+         0,
+         "e6db0bfc",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            10,
+            "8184e6db0bfc1444b443"
+         ],
+         false
+      ],
+      [
+         "KL",
+         0.5
+      ],
+      [
+         "RO",
+         [
+            6,
+            "0904f29fbfbf"
+         ]
+      ],
+      [
+         "TF",
+         [
+            26,
+            "0x03ea667261676d656e74656420636f6e74726f6c206672616d65"
+         ],
+         8,
+         true,
+         0,
+         "63543ac1",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            32,
+            "889a63543ac160be5cb3023357a40d205fa5433755af172655ad433248a00e31"
+         ],
+         false
+      ],
+      [
+         "RF",
+         [
+            4,
+            "\uda3f\udfff"
+         ],
+         9,
+         false,
+         0,
+         false,
+         null
+      ]
+   ]
+}

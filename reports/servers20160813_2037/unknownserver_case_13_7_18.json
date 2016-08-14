@@ -1,0 +1,74 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "UNIMPLEMENTED",
+   "behaviorClose": "UNCLEAN",
+   "case": 519,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": false,
+   "description": "Send 1000 compressed messages each of payload size 131072, auto-fragment to 32768 octets. Use permessage-deflate client offers (requestNoContextTakeover, requestMaxWindowBits): [(True, 8), (True, 0), (False, 0)]",
+   "droppedByMe": false,
+   "duration": 202,
+   "expectation": "Receive echo'ed messages (with payload as sent). Timeout case after 480 secs.",
+   "expected": {},
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: 1r00P7+iLGfWACLUE/C8gg==\r\nSec-WebSocket-Extensions: permessage-deflate; client_no_context_takeover; client_max_window_bits; server_no_context_takeover; server_max_window_bits=8, permessage-deflate; client_no_context_takeover; client_max_window_bits; server_no_context_takeover, permessage-deflate; client_no_context_takeover; client_max_window_bits\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: FN9/TyEBuPxlMLdYSYqQTIlY+1U=\r\n\r\n",
+   "id": "13.7.18",
+   "isServer": false,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": true,
+   "reportTime": true,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T07:05:09.315Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "8": 1
+   },
+   "txOctetStats": {
+      "8": 1,
+      "564": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            564,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "WLM",
+         false
+      ]
+   ]
+}

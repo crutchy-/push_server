@@ -1,0 +1,209 @@
+{
+   "agent": "AutobahnServer",
+   "behavior": "OK",
+   "behaviorClose": "OK",
+   "case": 60,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Repeated 2x: Continuation Frame with FIN = false (where there is nothing to continue), then text Message fragmented into 2 fragments.",
+   "droppedByMe": false,
+   "duration": 202,
+   "expectation": "The connection is failed immediately, since there is no message to continue.",
+   "expected": {
+      "OK": []
+   },
+   "expectedClose": {
+      "closeCode": [
+         1002
+      ],
+      "closedByMe": false,
+      "requireClean": false
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: P09xchUp+LewOon453nY/w==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: IEOeKMseVp21wwPvHvvc6jCDa3s=\r\n\r\n",
+   "id": "5.16",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "147": 1
+   },
+   "started": "2016-08-14T03:00:50.701Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "0": 4,
+      "1": 2
+   },
+   "txOctetStats": {
+      "15": 6,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment1"
+         ],
+         0,
+         false,
+         0,
+         "629f6f31",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "0089629f6f3104ed0e560ffa014553"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment2"
+         ],
+         1,
+         false,
+         0,
+         "67fdc420",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "018967fdc420018fa5470a98aa5455"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment3"
+         ],
+         0,
+         true,
+         0,
+         "db2aa425",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8089db2aa425bd58c542b64fca51e8"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment1"
+         ],
+         0,
+         false,
+         0,
+         "0b1bffff",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "00890b1bffff6d699e98667e918b3a"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment2"
+         ],
+         1,
+         false,
+         0,
+         "4fc3ce3c",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "01894fc3ce3c29b1af5b22a6a0487d"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "fragment3"
+         ],
+         0,
+         true,
+         0,
+         "bde4c83a",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8089bde4c83adb96a95dd081a64e8e"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ]
+   ]
+}

@@ -10,6 +10,18 @@ error_reporting(E_ALL);
 set_time_limit(0);
 ob_implicit_flush();
 date_default_timezone_set("UTC");
+ini_set("memory_limit","512M");
+
+set_error_handler("error_handler");
+
+if (isset($argv[1])==True)
+{
+  if ($argv[1]=="test")
+  {
+    run_all_tests();
+    return;
+  }
+}
 
 $sockets=array();
 $connections=array();
@@ -20,6 +32,7 @@ if ($server===False)
   show_message("could not bind to socket: ".$err_msg,True);
   return;
 }
+show_message("push_server started");
 stream_set_blocking($server,0);
 $sockets[]=$server;
 while (True)
@@ -56,11 +69,17 @@ while (True)
   {
     if ($read[$read_key]===$server)
     {
-      $client=stream_socket_accept($server);
+      $client=stream_socket_accept($server,120);
+      if (($client===False) or ($client==Null))
+      {
+        show_message("stream_socket_accept error/timeout",True);
+        continue;
+      }
       stream_set_blocking($client,0);
       $sockets[]=$client;
       $client_key=array_search($client,$sockets,True);
       $new_connection=array();
+      $new_connection["peer_name"]=stream_socket_get_name($client,True);
       $new_connection["state"]="CONNECTING";
       $connections[$client_key]=$new_connection;
       show_message("client connected");
@@ -104,32 +123,40 @@ fclose($server);
 
 #####################################################################################################
 
-function close_client($client_key)
+function error_handler($errno,$errstr,$errfile,$errline)
 {
-  global $sockets;
-  global $connections;
-  stream_socket_shutdown($sockets[$client_key],STREAM_SHUT_RDWR);
-  fclose($sockets[$client_key]);
-  unset($sockets[$client_key]);
-  unset($connections[$client_key]);
+  $continue_errors=array(
+    "failed with errno=32 Broken pipe",
+    "failed with errno=104 Connection reset by peer");
+  for ($i=0;$i<count($continue_errors);$i++)
+  {
+    if (strpos($errstr,$continue_errors[$i])!==False)
+    {
+      return True;
+    }
+  }
+  echo "*** $errstr in $errfile on line $errline".PHP_EOL;
+  die; # FOR TEST/DEBUG
 }
 
 #####################################################################################################
 
 function on_msg($client_key,$data)
 {
+  global $sockets;
   global $connections;
-  show_message("from client:",True);
   if ($connections[$client_key]["state"]=="CONNECTING")
   {
     # TODO: CHECK "Host" HEADER (COMPARE TO CONFIG SETTING)
     # TODO: CHECK "Origin" HEADER (COMPARE TO CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
+    show_message("from client:",True);
     var_dump($data);
     $headers=extract_headers($data);
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
     $sec_websocket_accept=base64_encode(sha1($sec_websocket_key."258EAFA5-E914-47DA-95CA-C5AB0DC85B11",True));
     $msg="HTTP/1.1 101 Switching Protocols".PHP_EOL;
+    $msg.="Server: SimpleWS/0.1".PHP_EOL;
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
     $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
@@ -142,10 +169,17 @@ function on_msg($client_key,$data)
   elseif ($connections[$client_key]["state"]=="OPEN")
   {
     $frame=decode_frame($data);
+    if ($frame===False)
+    {
+      # illegal frame
+      close_client($client_key);
+      return;
+    }
     $msg="";
     switch ($frame["opcode"])
     {
       case 0: # continuation frame
+        show_message("received continuation frame",True);
         $connections[$client_key]["buffer"][]=$frame;
         if ($frame["fin"]==True)
         {
@@ -158,36 +192,106 @@ function on_msg($client_key,$data)
           return;
         }
       case 1: # text frame
+        show_message("received text frame",True);
+        $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
         break;
       case 8: # connection close
-        close_client($client_key);
+        if (isset($frame["close_status"])==True)
+        {
+          show_message("received close frame - status code ".$frame["close_status"],True);
+          close_client($client_key,1000);
+        }
+        else
+        {
+          show_message("received close frame - invalid/missing status code ",True);
+          close_client($client_key);
+        }
         return;
       case 9: # ping
         # TODO: SEND PONG FRAME
+        show_message("received ping frame",True);
+        $reply_frame=encode_frame(10,$frame["payload"]);
+        do_reply($client_key,$reply_frame);
         return;
       default:
-        # TODO: SEND CLOSE FRAME
+        show_message("received frame with unsupported opcode - terminating connection",True);
         close_client($client_key);
         return;
     }
-    var_dump($msg);
-    do_reply($client_key,$msg);
+    $reply_frame=encode_text_data_frame($msg);
+    do_reply($client_key,$reply_frame);
   }
+}
+
+#####################################################################################################
+
+function close_client($client_key,$status_code=False,$reason="")
+{
+  global $sockets;
+  global $connections;
+  if ($status_code!==False)
+  {
+    show_message("closing client connection (cleanly)",True);
+    $reply_frame=encode_frame(8,$reason,1000);
+    do_reply($client_key,$reply_frame);
+  }
+  else
+  {
+    show_message("closing client connection (uncleanly)",True);
+  }
+  stream_socket_shutdown($sockets[$client_key],STREAM_SHUT_RDWR);
+  fclose($sockets[$client_key]);
+  unset($sockets[$client_key]);
+  unset($connections[$client_key]);
 }
 
 #####################################################################################################
 
 function encode_text_data_frame($payload)
 {
-
+  return encode_frame(1,$payload);
 }
 
 #####################################################################################################
 
-function encode_control_frame($opcode,$payload)
+function encode_frame($opcode,$payload="",$status=False)
 {
-
+  $length=strlen($payload);
+  if ($status!==False)
+  {
+    $length+=2;
+  }
+  $frame=chr(128|$opcode);
+  if ($length<=125)
+  {
+    $frame.=chr($length);
+  }
+  elseif ($length<=65535)
+  {
+    $frame.=chr(126);
+    $frame.=chr($length>>8);
+    $frame.=chr($length&255);
+  }
+  else
+  {
+    $frame.=chr(127);
+    $frame.=chr($length>>56);
+    $frame.=chr(($length>>48)&255);
+    $frame.=chr(($length>>40)&255);
+    $frame.=chr(($length>>32)&255);
+    $frame.=chr(($length>>24)&255);
+    $frame.=chr(($length>>16)&255);
+    $frame.=chr(($length>>8)&255);
+    $frame.=chr($length&255);
+  }
+  if ($status!==False)
+  {
+    $frame.=chr($status>>8);
+    $frame.=chr($status&255);
+  }
+  $frame.=$payload;
+  return $frame;
 }
 
 #####################################################################################################
@@ -204,13 +308,11 @@ function coalesce_frames(&$buffer)
 
 #####################################################################################################
 
-function decode_frame($frame_data)
+function decode_frame(&$frame_data)
 {
   # https://tools.ietf.org/html/rfc6455
   $frame=array();
-  $F=unpack("C*",$frame_data); # first key is 1 (not 0)
-  #var_dump($F);
-  $frame["raw"]=$frame_data;
+  $F=unpack("C".min(14,strlen($frame_data)),$frame_data); # first key is 1 (not 0)
   $frame["fin"]=(($F[1] & 128)==128);
   $frame["opcode"]=$F[1] & 15;
   $frame["mask"]=(($F[2] & 128)==128);
@@ -229,40 +331,62 @@ function decode_frame($frame_data)
     $L=8;
   }
   $frame["mask_key"]=array();
-  $N=2+$L+1; # first payload byte (no mask)
+  $offset=2+$L+1; # first payload byte (no mask)
   if ($frame["mask"]==True)
   {
     for ($i=1;$i<=4;$i++)
     {
       $frame["mask_key"][]=$F[2+$L+$i];
     }
-    $N+=4; # first payload byte (with mask)
+    $offset+=4; # first payload byte (with mask)
   }
-  $frame["masked_text"]=substr($frame_data,$N-1,$frame["length"]);
-  $frame["masked_bytes"]=array_values(array_slice($F,$N-1,$frame["length"]));
   $frame["payload"]="";
-  if ($frame["mask"]==True)
+  if ($frame["length"]>0)
   {
-    $frame["payload"]=$frame["masked_bytes"];
-    for ($i=0;$i<$frame["length"];$i++)
+    if ($frame["mask"]==True)
     {
-      $frame["payload"][$i]=$frame["payload"][$i]^$frame["mask_key"][$i%4];
-      $frame["payload"][$i]=chr($frame["payload"][$i]);
+      for ($i=0;$i<$frame["length"];$i++)
+      {
+        $key=$i+$offset-1;
+        if (isset($frame_data[$key])==False)
+        {
+          return False;
+        }
+        $frame_data[$key]=chr(ord($frame_data[$key])^$frame["mask_key"][$i%4]);
+      }
     }
-    $frame["payload"]=implode("",$frame["payload"]);
+    $frame["payload"]=substr($frame_data,$offset-1);
+    if (($frame["opcode"]==8) and ($frame["length"]>=2))
+    {
+      $status=unpack("C2",$frame["payload"]);
+      $frame["close_status"]=($status[1]<<8)+$status[2];
+      $frame["length"]-=2;
+      $frame["payload"]=substr($frame["payload"],2);
+    }
+    if (preg_match("//u",$frame["payload"])==0)
+    {
+      return False;
+    }
   }
   return $frame;
 }
 
 #####################################################################################################
 
-function do_reply($client_key,$msg)
+function do_reply($client_key,&$msg)
 {
   global $sockets;
   $total_sent=0;
   while ($total_sent<strlen($msg))
   {
-    $written=fwrite($sockets[$client_key],substr($msg,$total_sent));
+    $buf=substr($msg,$total_sent);
+    $written=fwrite($sockets[$client_key],$buf,min(strlen($buf),8192));
+    if (($written===False) or ($written<=0))
+    {
+      show_message("error writing to client socket",True);
+      close_client($client_key);
+      return;
+    }
     $total_sent+=$written;
   }
 }
@@ -312,6 +436,28 @@ function get_header($lines,$header)
     }
   }
   return False;
+}
+
+#####################################################################################################
+
+function run_all_tests()
+{
+  $lengths=array(0,1,5,124,125,126,127,128,129,130,65533,65534,65535,65536,65537,66000,100000000);
+  for ($i=0;$i<count($lengths);$i++)
+  {
+    show_message("running test $i");
+    $payload=str_repeat("*",$lengths[$i]);
+    $encoded=encode_text_data_frame($payload);
+    $decoded=decode_frame($encoded);
+    if ($decoded["payload"]<>$payload)
+    {
+      show_message("test failed ($i)",True);
+      var_dump($payload);
+      var_dump($encoded);
+      var_dump($decoded);
+      return;
+    }
+  }
 }
 
 #####################################################################################################

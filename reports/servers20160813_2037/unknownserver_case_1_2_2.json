@@ -1,0 +1,104 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "FAILED",
+   "behaviorClose": "FAILED",
+   "case": 10,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send binary message message with payload of length 125.",
+   "droppedByMe": false,
+   "duration": 206,
+   "expectation": "Receive echo'ed binary message (with payload as sent). Clean close with normal code.",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "0xfefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe ...",
+            true
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: 9TO+MeEyz6PziUpHIm0pBQ==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: qEoTVY394+QrSFABXFelNdUqsvw=\r\n\r\n",
+   "id": "1.2.2",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The connection was failed by the wrong endpoint",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T06:34:35.287Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "2": 1
+   },
+   "txOctetStats": {
+      "131": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            125,
+            "0xfefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe ..."
+         ],
+         2,
+         true,
+         0,
+         "6e22cd96",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            131,
+            "82fd6e22cd9690dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc336890dc ..."
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ]
+   ]
+}

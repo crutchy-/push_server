@@ -1,0 +1,348 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "FAILED",
+   "behaviorClose": "FAILED",
+   "case": 71,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send a valid UTF-8 text message in fragments of 1 octet, resulting in frames ending on positions which are not code point ends.<br><br>MESSAGE:<br>\u03ba\u1f79\u03c3\u03bc\u03b5<br>cebae1bdb9cf83cebcceb5",
+   "droppedByMe": false,
+   "duration": 202,
+   "expectation": "The message is echo'ed back to us.",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "\u03ba\u1f79\u03c3\u03bc\u03b5",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: yeFjKrzeksX2eSgo7220qA==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: CV7nflD1KEb7R1tNohpT7RZFmzw=\r\n\r\n",
+   "id": "6.2.4",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The connection was failed by the wrong endpoint",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T06:35:16.740Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "0": 11,
+      "1": 1
+   },
+   "txOctetStats": {
+      "6": 1,
+      "7": 11,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xce"
+         ],
+         1,
+         false,
+         0,
+         "62d8896a",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "018162d8896aac"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xba"
+         ],
+         0,
+         false,
+         0,
+         "926c635e",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "0081926c635e28"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xe1"
+         ],
+         0,
+         false,
+         0,
+         "7f9ea4de",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "00817f9ea4de9e"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xbd"
+         ],
+         0,
+         false,
+         0,
+         "8c09c9dc",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "00818c09c9dc31"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xb9"
+         ],
+         0,
+         false,
+         0,
+         "d44d8c46",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "0081d44d8c466d"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xcf"
+         ],
+         0,
+         false,
+         0,
+         "d007051a",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "0081d007051a1f"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0x83"
+         ],
+         0,
+         false,
+         0,
+         "be95aebc",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "0081be95aebc3d"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xce"
+         ],
+         0,
+         false,
+         0,
+         "c0da5ef4",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "0081c0da5ef40e"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xbc"
+         ],
+         0,
+         false,
+         0,
+         "77ccca9f",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "008177ccca9fcb"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xce"
+         ],
+         0,
+         false,
+         0,
+         "1883289d",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "00811883289dd6"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            1,
+            "0xb5"
+         ],
+         0,
+         false,
+         0,
+         "5acd6a3b",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            7,
+            "00815acd6a3bef"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            0,
+            ""
+         ],
+         0,
+         true,
+         0,
+         "5642b23d",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            6,
+            "80805642b23d"
+         ],
+         false
+      ],
+      [
+         "TI",
+         1
+      ]
+   ]
+}

@@ -1,0 +1,99 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "OK",
+   "behaviorClose": "OK",
+   "case": 72,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send invalid UTF-8 text message unfragmented.<br><br>MESSAGE:<br>cebae1bdb9cf83cebcceb5eda080656469746564",
+   "droppedByMe": false,
+   "duration": 200,
+   "expectation": "The connection is failed immediately, since the payload is not valid UTF-8.",
+   "expected": {
+      "OK": []
+   },
+   "expectedClose": {
+      "closeCode": [
+         1007
+      ],
+      "closedByMe": false,
+      "closedByWrongEndpointIsFatal": true,
+      "requireClean": false
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: joaZ5PqwOglo5JUkBZtE5Q==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: fsD4VmnPrUChWzPL06APnL0ZxO0=\r\n\r\n",
+   "id": "6.3.1",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "Connection was properly closed",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T06:35:17.346Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1
+   },
+   "txOctetStats": {
+      "26": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            20,
+            "\u03ba\u1f79\u03c3\u03bc\u03b5\ud800edited"
+         ],
+         1,
+         true,
+         0,
+         "0b66d099",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            26,
+            "81940b66d099c5dc3124b2a95357b7a86574abe6b5fd6212b5fd"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ]
+   ]
+}

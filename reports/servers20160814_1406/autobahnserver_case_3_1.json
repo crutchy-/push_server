@@ -1,0 +1,174 @@
+{
+   "agent": "AutobahnServer",
+   "behavior": "FAILED",
+   "behaviorClose": "FAILED",
+   "case": 28,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send small text message with <b>RSV = 1</b>.",
+   "droppedByMe": false,
+   "duration": 1004,
+   "expectation": "The connection is failed immediately (1002/protocol error), since RSV must be 0, when no extension defining RSV meaning has been negotiated.",
+   "expected": {
+      "OK": []
+   },
+   "expectedClose": {
+      "closeCode": [
+         1002
+      ],
+      "closedByMe": false,
+      "requireClean": false
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: 8nGv6kk9SCZkXAME2Dl3sw==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: wJByrh3KB47UswLKKhwqWSXj+t8=\r\n\r\n",
+   "id": "3.1",
+   "isServer": false,
+   "localCloseCode": 1001,
+   "localCloseReason": "Going Away",
+   "received": [
+      [
+         "message",
+         "Hello, world!",
+         false
+      ]
+   ],
+   "remoteCloseCode": 1000,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The connection was failed by the wrong endpoint",
+   "rxFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "rxOctetStats": {
+      "4": 1,
+      "15": 1,
+      "147": 1
+   },
+   "started": "2016-08-14T03:42:27.250Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "18": 1,
+      "19": 1,
+      "240": 1
+   },
+   "wasClean": true,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            13,
+            "Hello, world!"
+         ],
+         1,
+         true,
+         1,
+         "61f1bc9d",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            19,
+            "918d61f1bc9d2994d0f10edd9cea0e83d0f940"
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "RO",
+         [
+            15,
+            "810d48656c6c6f2c20776f726c6421"
+         ]
+      ],
+      [
+         "RF",
+         [
+            13,
+            "Hello, world!"
+         ],
+         1,
+         true,
+         0,
+         false,
+         null
+      ],
+      [
+         "KLE"
+      ],
+      [
+         "TF",
+         [
+            12,
+            "0x03e9476f696e672041776179"
+         ],
+         8,
+         true,
+         0,
+         "10a2de5d",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            18,
+            "888c10a2de5d134b993279ccb97d51d5bf24"
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            4,
+            "880203e8"
+         ]
+      ],
+      [
+         "RF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         false,
+         null
+      ]
+   ]
+}

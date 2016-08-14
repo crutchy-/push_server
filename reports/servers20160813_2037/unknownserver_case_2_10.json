@@ -1,0 +1,337 @@
+{
+   "agent": "UnknownServer",
+   "behavior": "FAILED",
+   "behaviorClose": "FAILED",
+   "case": 26,
+   "closedByMe": false,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send 10 Pings with payload.",
+   "droppedByMe": false,
+   "duration": 205,
+   "expectation": "Pongs for our Pings with all the payloads. Note: This is not required by the Spec .. but we check for this behaviour anyway. Clean close with normal code.",
+   "expected": {
+      "OK": [
+         [
+            "pong",
+            "payload-0"
+         ],
+         [
+            "pong",
+            "payload-1"
+         ],
+         [
+            "pong",
+            "payload-2"
+         ],
+         [
+            "pong",
+            "payload-3"
+         ],
+         [
+            "pong",
+            "payload-4"
+         ],
+         [
+            "pong",
+            "payload-5"
+         ],
+         [
+            "pong",
+            "payload-6"
+         ],
+         [
+            "pong",
+            "payload-7"
+         ],
+         [
+            "pong",
+            "payload-8"
+         ],
+         [
+            "pong",
+            "payload-9"
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: xLX/2oCDen9qJ77C2pXJ1g==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nUser-Agent: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: ZVUVqUZX3Q79Ge/lw2hlwRaXRGI=\r\n\r\n",
+   "id": "2.10",
+   "isServer": false,
+   "localCloseCode": null,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The connection was failed by the wrong endpoint",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "151": 1
+   },
+   "started": "2016-08-13T06:34:46.914Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "9": 10
+   },
+   "txOctetStats": {
+      "15": 10,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            151,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a557365722d4167656e743a2053696d706c6557532f302e310a557067726164 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-0"
+         ],
+         9,
+         true,
+         0,
+         "a761f082",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989a761f082d70089eec80094af97"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-1"
+         ],
+         9,
+         true,
+         0,
+         "d0d9e56a",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989d0d9e56aa0b89c06bfb88147e1"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-2"
+         ],
+         9,
+         true,
+         0,
+         "b7d7c55f",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989b7d7c55fc7b6bc33d8b6a17285"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-3"
+         ],
+         9,
+         true,
+         0,
+         "a8edf9f5",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989a8edf9f5d88c8099c78c9dd89b"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-4"
+         ],
+         9,
+         true,
+         0,
+         "8549936e",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "89898549936ef528ea02ea28f743b1"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-5"
+         ],
+         9,
+         true,
+         0,
+         "b6c304f1",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989b6c304f1c6a27d9dd9a260dc83"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-6"
+         ],
+         9,
+         true,
+         0,
+         "660667e5",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989660667e516671e89096703c850"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-7"
+         ],
+         9,
+         true,
+         0,
+         "a82f9ecb",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "8989a82f9ecbd84ee7a7c74efae69f"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-8"
+         ],
+         9,
+         true,
+         0,
+         "9f9aaf21",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "89899f9aaf21effbd64df0fbcb0ca7"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            9,
+            "payload-9"
+         ],
+         9,
+         true,
+         0,
+         "04e8db09",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            15,
+            "898904e8db097489a2656b89bf243d"
+         ],
+         false
+      ],
+      [
+         "TI",
+         3
+      ]
+   ]
+}

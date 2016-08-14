@@ -1,0 +1,122 @@
+{
+   "agent": "SimpleWS/0.1",
+   "behavior": "OK",
+   "behaviorClose": "UNCLEAN",
+   "case": 24,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send unsolicited pong with payload. Verify nothing is received. Clean close with normal code.",
+   "droppedByMe": false,
+   "duration": 201,
+   "expectation": "Nothing.",
+   "expected": {
+      "OK": []
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": false,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: S84u/D0L+yf3mBzsZ8LJbw==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: lyDyAt1pYt7Xj2NuFIlJMwYgRx8=\r\n\r\n",
+   "id": "2.8",
+   "isServer": false,
+   "localCloseCode": 1000,
+   "localCloseReason": null,
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events match at least one expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "147": 1
+   },
+   "started": "2016-08-13T14:11:10.322Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "8": 1,
+      "10": 1
+   },
+   "txOctetStats": {
+      "8": 1,
+      "30": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": "peer dropped the TCP connection without previous WebSocket closing handshake",
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            24,
+            "unsolicited pong payload"
+         ],
+         10,
+         true,
+         0,
+         "83a56bfa",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            30,
+            "8a9883a56bfaf6cb1895efcc0893f7c00fdaf3ca059da3d50a83efca0a9e"
+         ],
+         false
+      ],
+      [
+         "TF",
+         [
+            2,
+            "0x03e8"
+         ],
+         8,
+         true,
+         0,
+         "2400fd0a",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            8,
+            "88822400fd0a27e8"
+         ],
+         false
+      ],
+      [
+         "TI",
+         1
+      ]
+   ]
+}

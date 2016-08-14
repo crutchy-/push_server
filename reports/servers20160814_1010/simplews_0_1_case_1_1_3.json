@@ -1,0 +1,136 @@
+{
+   "agent": "SimpleWS/0.1",
+   "behavior": "FAILED",
+   "behaviorClose": "UNCLEAN",
+   "case": 3,
+   "closedByMe": true,
+   "createStats": true,
+   "createWirelog": true,
+   "description": "Send text message message with payload of length 126.",
+   "droppedByMe": true,
+   "duration": 206,
+   "expectation": "Receive echo'ed text message (with payload as sent). Clean close with normal code.",
+   "expected": {
+      "OK": [
+         [
+            "message",
+            "**************************************************************** ...",
+            false
+         ]
+      ]
+   },
+   "expectedClose": {
+      "closeCode": [
+         1000
+      ],
+      "closedByMe": true,
+      "requireClean": true
+   },
+   "failedByMe": true,
+   "httpRequest": "GET / HTTP/1.1\r\nUser-Agent: AutobahnTestSuite/0.7.5-0.10.9\r\nHost: 127.0.0.1:9001\r\nUpgrade: WebSocket\r\nConnection: Upgrade\r\nPragma: no-cache\r\nCache-Control: no-cache\r\nSec-WebSocket-Key: QlzptiOnJlojKlFeYQ0LSA==\r\nSec-WebSocket-Version: 13\r\n\r\n",
+   "httpResponse": "HTTP/1.1 101 Switching Protocols\nServer: SimpleWS/0.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Accept: KqEj+ISNlRKcgpdq7j3tl2tQM6E=\r\n\r\n",
+   "id": "1.1.3",
+   "isServer": false,
+   "localCloseCode": 1002,
+   "localCloseReason": "fragmented control frame",
+   "received": [],
+   "remoteCloseCode": null,
+   "remoteCloseReason": null,
+   "reportCompressionRatio": false,
+   "reportTime": false,
+   "result": "Actual events differ from any expected.",
+   "resultClose": "The spec requires the connection to be failed cleanly here",
+   "rxFrameStats": {},
+   "rxOctetStats": {
+      "130": 1,
+      "147": 1
+   },
+   "started": "2016-08-13T14:10:56.490Z",
+   "trafficStats": null,
+   "txFrameStats": {
+      "1": 1,
+      "8": 1
+   },
+   "txOctetStats": {
+      "32": 1,
+      "134": 1,
+      "240": 1
+   },
+   "wasClean": false,
+   "wasCloseHandshakeTimeout": false,
+   "wasNotCleanReason": null,
+   "wasOpenHandshakeTimeout": false,
+   "wasServerConnectionDropTimeout": false,
+   "wirelog": [
+      [
+         "TO",
+         [
+            240,
+            "474554202f20485454502f312e310d0a557365722d4167656e743a204175746f6261686e5465737453756974652f302e372e352d302e31302e390d0a486f7374 ..."
+         ],
+         false
+      ],
+      [
+         "RO",
+         [
+            147,
+            "485454502f312e312031303120537769746368696e672050726f746f636f6c730a5365727665723a2053696d706c6557532f302e310a557067726164653a2077 ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            126,
+            "**************************************************************** ..."
+         ],
+         1,
+         true,
+         0,
+         "ca948d08",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            134,
+            "81fe007eca948d08e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722e0bea722 ..."
+         ],
+         false
+      ],
+      [
+         "KL",
+         1
+      ],
+      [
+         "RO",
+         [
+            130,
+            "097e7e002a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a ..."
+         ]
+      ],
+      [
+         "TF",
+         [
+            26,
+            "0x03ea667261676d656e74656420636f6e74726f6c206672616d65"
+         ],
+         8,
+         true,
+         0,
+         "5514a916",
+         null,
+         null,
+         false
+      ],
+      [
+         "TO",
+         [
+            32,
+            "889a5514a91656fecf643473c4733b60cc727577c6782166c67a7572db773871"
+         ],
+         false
+      ]
+   ]
+}
