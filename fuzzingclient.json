@@ -1,10 +1,10 @@
 {
    "options": {"failByDrop": false},
-   "outdir": "/var/include/vhosts/default/inc/push_server/reports/servers",
+   "outdir": "./reports/server",
 
    "servers": [
-                {"agent": "AutobahnServer",
-                 "url": "ws://127.0.0.1:9001",
+                {"agent": "SimpleWS/0.1",
+                 "url": "ws://127.0.0.1:50000",
                  "options": {"version": 18}}
               ],
 

@@ -25,8 +25,7 @@ if (isset($argv[1])==True)
 
 $sockets=array();
 $connections=array();
-$server=stream_socket_server("tcp://127.0.0.1:9001",$err_no,$err_msg);
-#$server=stream_socket_server("tcp://127.0.0.1:50000",$err_no,$err_msg);
+$server=stream_socket_server("tcp://127.0.0.1:50000",$err_no,$err_msg);
 if ($server===False)
 {
   show_message("could not bind to socket: ".$err_msg,True);
@@ -209,10 +208,12 @@ function on_msg($client_key,$data)
         }
         return;
       case 9: # ping
-        # TODO: SEND PONG FRAME
         show_message("received ping frame",True);
         $reply_frame=encode_frame(10,$frame["payload"]);
         do_reply($client_key,$reply_frame);
+        return;
+      case 10: # pong
+        show_message("received unsolicited pong frame",True);
         return;
       default:
         show_message("received frame with unsupported opcode - terminating connection",True);

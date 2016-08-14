@@ -37,9 +37,7 @@ pip install autobahntestsuite
 
 ## using
 
-set listening port of server to 9001
-
-as non-root user (from /var/include/vhosts/default/inc/push_server/ directory):
+as non-root user (from repo directory):
 ````
 wstest -m fuzzingclient -s fuzzingclient.json
 ````
