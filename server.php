@@ -13,6 +13,15 @@ define("LISTENING_PORT",50000);
 define("SELECT_TIMEOUT",200000); # microseconds (0.2 seconds)
 define("SERVER_HEADER","SimpleWS/0.1");
 
+require_once("../push_server_events.php"); # contains functions (or includes another file that contains functions) to handle events for the specific application
+/*
+  optional event handlers:
+  function ws_server_open(&$connection)
+  function ws_server_close(&$connection)
+  function ws_server_text(&$connection,&$frame)
+  function ws_server_ping(&$connection,&$frame)
+*/
+
 set_error_handler("error_handler");
 
 if (isset($argv[1])==True)
@@ -165,6 +174,10 @@ function on_msg($client_key,$data)
     $connections[$client_key]["state"]="OPEN";
     $connections[$client_key]["buffer"]=array();
     do_reply($client_key,$msg);
+    if (function_exists("ws_server_open")==True)
+    {
+      ws_server_open($connections[$client_key]);
+    }
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
   {
@@ -192,7 +205,14 @@ function on_msg($client_key,$data)
           return;
         }
       case 1: # text frame
-        show_message("received text frame",True);
+        if ($frame["fin"]==True)
+        {
+          show_message("received text frame",True);
+        }
+        else
+        {
+          show_message("received initial text frame of a fragmented series",True);
+        }
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
         break;
@@ -212,6 +232,10 @@ function on_msg($client_key,$data)
         show_message("received ping frame",True);
         $reply_frame=encode_frame(10,$frame["payload"]);
         do_reply($client_key,$reply_frame);
+        if (function_exists("ws_server_ping")==True)
+        {
+          ws_server_ping($connections[$client_key],$frame);
+        }
         return;
       case 10: # pong
         show_message("received unsolicited pong frame",True);
@@ -220,6 +244,10 @@ function on_msg($client_key,$data)
         show_message("received frame with unsupported opcode - terminating connection",True);
         close_client($client_key);
         return;
+    }
+    if (function_exists("ws_server_text")==True)
+    {
+      ws_server_text($connections[$client_key],$frame);
     }
     $reply_frame=encode_text_data_frame($msg);
     do_reply($client_key,$reply_frame);
@@ -232,6 +260,10 @@ function close_client($client_key,$status_code=False,$reason="")
 {
   global $sockets;
   global $connections;
+  if (function_exists("ws_server_close")==True)
+  {
+    ws_server_close($connections[$client_key]);
+  }
   if ($status_code!==False)
   {
     show_message("closing client connection (cleanly)",True);
