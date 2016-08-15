@@ -2,15 +2,16 @@
 
 #####################################################################################################
 
-# for help with ssl server: http://php.net/manual/en/function.stream-socket-server.php#118419
-
-#####################################################################################################
-
 error_reporting(E_ALL);
 set_time_limit(0);
 ob_implicit_flush();
 date_default_timezone_set("UTC");
 ini_set("memory_limit","512M");
+
+define("LISTENING_ADDRESS","127.0.0.1");
+define("LISTENING_PORT",50000);
+define("SELECT_TIMEOUT",200000); # microseconds (0.2 seconds)
+define("SERVER_HEADER","SimpleWS/0.1");
 
 set_error_handler("error_handler");
 
@@ -25,7 +26,7 @@ if (isset($argv[1])==True)
 
 $sockets=array();
 $connections=array();
-$server=stream_socket_server("tcp://127.0.0.1:50000",$err_no,$err_msg);
+$server=stream_socket_server("tcp://".LISTENING_ADDRESS.":".LISTENING_PORT,$err_no,$err_msg);
 if ($server===False)
 {
   show_message("could not bind to socket: ".$err_msg,True);
@@ -39,7 +40,7 @@ while (True)
   $read=array(STDIN);
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,200000);
+  $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
   if ($change_count!==False)
   {
     if ($change_count>=1)
@@ -54,7 +55,7 @@ while (True)
   $read=$sockets;
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,200000);
+  $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
   if ($change_count===False)
   {
     show_message("stream_select failed",True);
@@ -155,7 +156,7 @@ function on_msg($client_key,$data)
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
     $sec_websocket_accept=base64_encode(sha1($sec_websocket_key."258EAFA5-E914-47DA-95CA-C5AB0DC85B11",True));
     $msg="HTTP/1.1 101 Switching Protocols".PHP_EOL;
-    $msg.="Server: SimpleWS/0.1".PHP_EOL;
+    $msg.="Server: ".SERVER_HEADER.PHP_EOL;
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
     $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
