@@ -16,10 +16,12 @@ define("SERVER_HEADER","SimpleWS/0.1");
 require_once("../push_server_events.php"); # contains functions (or includes another file that contains functions) to handle events for the specific application
 /*
   optional event handlers:
+  function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
   function ws_server_close(&$connection)
   function ws_server_text(&$connection,&$frame)
   function ws_server_ping(&$connection,&$frame)
+  function ws_server_shutdown(&$server,&$sockets,&$connections)
 */
 
 set_error_handler("error_handler");
@@ -60,6 +62,10 @@ while (True)
         break;
       }
     }
+  }
+  if (function_exists("ws_server_loop")==True)
+  {
+    ws_server_loop($server,$sockets,$connections);
   }
   $read=$sockets;
   $write=Null;
@@ -118,6 +124,10 @@ while (True)
       on_msg($client_key,$data);
     }
   }
+}
+if (function_exists("ws_server_shutdown")==True)
+{
+  ws_server_shutdown($server,$sockets,$connections);
 }
 foreach ($sockets as $key => $socket)
 {
