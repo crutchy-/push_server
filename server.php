@@ -90,6 +90,13 @@ while (True)
       $data=trim(fgets(STDIN));
       if ($data=="q")
       {
+        foreach ($sockets as $key => $socket)
+        {
+          if ($sockets[$key]!==$server)
+          {
+            close_client($key,1001,"server shutting down");
+          }
+        }
         break;
       }
     }
@@ -126,6 +133,8 @@ while (True)
       $client_key=array_search($client,$sockets,True);
       $new_connection=array();
       $new_connection["peer_name"]=stream_socket_get_name($client,True);
+      $new_connection["client_id"]="";
+      $new_connection["client_id_confirmed"]=False;
       $new_connection["state"]="CONNECTING";
       $connections[$client_key]=$new_connection;
       show_message("client connected");
@@ -222,6 +231,11 @@ function on_msg($client_key,$data)
     {
       ws_server_open($connections[$client_key]);
     }
+    $connections[$client_key]["client_id"]=uniqid("clientid_");
+    $params=array("client_id"=>$connections[$client_key]["client_id"]);
+    $json=json_encode($params,JSON_PRETTY_PRINT);
+    $frame=encode_text_data_frame($json);
+    do_reply($client_key,$frame);
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
   {
@@ -259,6 +273,14 @@ function on_msg($client_key,$data)
         }
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
+        $data=json_decode($msg,True);
+        if (isset($data["client_id_confirm"])==True)
+        {
+          if ($data["client_id_confirm"]===$connections[$client_key]["client_id"])
+          {
+            $connections[$client_key]["client_id_confirmed"]=True;
+          }
+        }
         break;
       case 8: # connection close
         if (isset($frame["close_status"])==True)
@@ -311,7 +333,7 @@ function close_client($client_key,$status_code=False,$reason="")
   if ($status_code!==False)
   {
     show_message("closing client connection (cleanly)",True);
-    $reply_frame=encode_frame(8,$reason,1000);
+    $reply_frame=encode_frame(8,$reason,$status_code);
     do_reply($client_key,$reply_frame);
   }
   else
@@ -322,6 +344,35 @@ function close_client($client_key,$status_code=False,$reason="")
   fclose($sockets[$client_key]);
   unset($sockets[$client_key]);
   unset($connections[$client_key]);
+}
+
+#####################################################################################################
+
+function send_text($client_id,$msg)
+{
+  global $connections;
+  if ($client_id=="")
+  {
+    show_message("SEND TEXT ERROR: INVALID CLIENT ID",True);
+    return False;
+  }
+  $client_key=False;
+  foreach ($connections as $key => $conn)
+  {
+    if (($conn["client_id"]===$client_id) and ($conn["client_id_confirmed"]==True))
+    {
+      $client_key=$key;
+      break;
+    }
+  }
+  if ($client_key===False)
+  {
+    show_message("SEND TEXT ERROR: REMOTE NOT FOUND",True);
+    return False;
+  }
+  $frame=encode_text_data_frame($msg);
+  do_reply($client_key,$frame);
+  return True;
 }
 
 #####################################################################################################
