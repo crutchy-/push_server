@@ -13,9 +13,12 @@ define("LISTENING_PORT",50000);
 define("SELECT_TIMEOUT",200000); # microseconds (0.2 seconds)
 define("SERVER_HEADER","SimpleWS/0.1");
 
+define("PIPE_FILE","../data/notify_iface");
+
 require_once("../push_server_events.php"); # contains functions (or includes another file that contains functions) to handle events for the specific application
 /*
   optional event handlers:
+  function ws_server_fifo_read(&$server,&$sockets,&$connections,$fifo_data)
   function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
   function ws_server_close(&$connection)
@@ -35,6 +38,19 @@ if (isset($argv[1])==True)
   }
 }
 
+if (file_exists(PIPE_FILE)==True)
+{
+  unlink(PIPE_FILE);
+}
+umask(0);
+if (posix_mkfifo(PIPE_FILE,0666)==False)
+{
+  show_message("ERROR: UNABLE TO MAKE FIFO NAMED PIPE FILE",True);
+  return;
+}
+$pipe=fopen(PIPE_FILE,"r+");
+stream_set_blocking($pipe,0);
+
 $sockets=array();
 $connections=array();
 $server=stream_socket_server("tcp://".LISTENING_ADDRESS.":".LISTENING_PORT,$err_no,$err_msg);
@@ -48,6 +64,21 @@ stream_set_blocking($server,0);
 $sockets[]=$server;
 while (True)
 {
+  $read=array($pipe);
+  $write=Null;
+  $except=Null;
+  $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
+  if ($change_count!==False)
+  {
+    if ($change_count>=1)
+    {
+      $data=trim(fgets($pipe));
+      if (function_exists("ws_server_shutdown")==True)
+      {
+        ws_server_fifo_read($server,$sockets,$connections,$data);
+      }
+    }
+  }
   $read=array(STDIN);
   $write=Null;
   $except=Null;
@@ -139,6 +170,9 @@ foreach ($sockets as $key => $socket)
 
 stream_socket_shutdown($server,STREAM_SHUT_RDWR);
 fclose($server);
+
+fclose($pipe);
+unlink(PIPE_FILE);
 
 #####################################################################################################
 
