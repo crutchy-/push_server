@@ -235,6 +235,7 @@ function on_msg($client_key,$data)
     $params=array("client_id"=>$connections[$client_key]["client_id"]);
     $json=json_encode($params,JSON_PRETTY_PRINT);
     $frame=encode_text_data_frame($json);
+    var_dump($json);
     do_reply($client_key,$frame);
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
