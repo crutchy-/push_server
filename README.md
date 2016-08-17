@@ -13,6 +13,8 @@ features/limitations:
 - no dependencies other than php (tested with version 5.6)
 - uses procedural programming style
 - no framework cruft
+- event handlers for including application-specific code
+- named pipe for receiving data from webserver ajax requests
 
 
 # autobahn/testsuite
