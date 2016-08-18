@@ -212,7 +212,7 @@ function on_msg($client_key,$data)
     # TODO: CHECK "Host" HEADER (COMPARE TO CONFIG SETTING)
     # TODO: CHECK "Origin" HEADER (COMPARE TO CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
-    show_message("from client:",True);
+    show_message("from client (connecting):",True);
     var_dump($data);
     $headers=extract_headers($data);
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
@@ -222,8 +222,7 @@ function on_msg($client_key,$data)
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
     $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
-    show_message("to client:",True);
-    var_dump($msg);
+    show_message("to client (open):",True);
     $connections[$client_key]["state"]="OPEN";
     $connections[$client_key]["buffer"]=array();
     do_reply($client_key,$msg);
@@ -266,12 +265,13 @@ function on_msg($client_key,$data)
       case 1: # text frame
         if ($frame["fin"]==True)
         {
-          show_message("received text frame",True);
+          show_message("received text frame from client socket",True);
         }
         else
         {
           show_message("received initial text frame of a fragmented series",True);
         }
+        var_dump($frame);
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
         $data=json_decode($msg,True);
@@ -316,8 +316,8 @@ function on_msg($client_key,$data)
     {
       ws_server_text($connections[$client_key],$frame);
     }
-    $reply_frame=encode_text_data_frame($msg);
-    do_reply($client_key,$reply_frame);
+    #$reply_frame=encode_text_data_frame($msg);
+    #do_reply($client_key,$reply_frame);
   }
 }
 
@@ -349,6 +349,46 @@ function close_client($client_key,$status_code=False,$reason="")
 
 #####################################################################################################
 
+function broadcast_to_all($msg)
+{
+  global $connections;
+  foreach ($connections as $key => $conn)
+  {
+    if ($conn["client_id_confirmed"]==True)
+    {
+      show_message("sending to client id \"$client_id\":",True);
+      var_dump($msg);
+      $frame=encode_text_data_frame($msg);
+      do_reply($client_key,$frame);
+    }
+  }
+}
+
+#####################################################################################################
+
+function broadcast_to_others($client_id,$msg)
+{
+  global $connections;
+  if ($client_id=="")
+  {
+    show_message("SEND TEXT ERROR: INVALID CLIENT ID",True);
+    return False;
+  }
+  foreach ($connections as $key => $conn)
+  {
+    if (($conn["client_id"]!==$client_id) and ($conn["client_id_confirmed"]==True))
+    {
+      show_message("sending to client id \"$client_id\":",True);
+      var_dump($msg);
+      $frame=encode_text_data_frame($msg);
+      do_reply($client_key,$frame);
+    }
+  }
+  return True;
+}
+
+#####################################################################################################
+
 function send_text($client_id,$msg)
 {
   global $connections;
@@ -371,6 +411,8 @@ function send_text($client_id,$msg)
     show_message("SEND TEXT ERROR: REMOTE NOT FOUND",True);
     return False;
   }
+  show_message("sending to client id \"$client_id\":",True);
+  var_dump($msg);
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
   return True;
