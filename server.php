@@ -10,15 +10,15 @@ ini_set("memory_limit","512M");
 
 define("LISTENING_ADDRESS","127.0.0.1");
 define("LISTENING_PORT",50000);
-define("SELECT_TIMEOUT",200000); # microseconds (0.2 seconds)
+define("SELECT_TIMEOUT",200000); # microseconds (200000 = 0.2 seconds)
 define("SERVER_HEADER","SimpleWS/0.1");
 
 define("PIPE_FILE","../data/notify_iface");
 
-require_once("../push_server_events.php"); # contains functions (or includes another file that contains functions) to handle events for the specific application
+require_once("../push_server_events.php"); # contains functions to handle events for the specific application
 /*
   optional event handlers:
-  function ws_server_fifo_read(&$server,&$sockets,&$connections,$fifo_data)
+  function ws_server_fifo(&$server,&$sockets,&$connections,$fifo_data)
   function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
   function ws_server_close(&$connection)
@@ -75,14 +75,14 @@ while (True)
       $data=trim(fgets($pipe));
       if (function_exists("ws_server_shutdown")==True)
       {
-        ws_server_fifo_read($server,$sockets,$connections,$data);
+        ws_server_fifo($server,$sockets,$connections,$data);
       }
     }
   }
   $read=array(STDIN);
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
+  $change_count=stream_select($read,$write,$except,0);
   if ($change_count!==False)
   {
     if ($change_count>=1)
@@ -108,7 +108,7 @@ while (True)
   $read=$sockets;
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
+  $change_count=stream_select($read,$write,$except,0);
   if ($change_count===False)
   {
     show_message("stream_select failed",True);
@@ -275,9 +275,9 @@ function on_msg($client_key,$data)
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
         $data=json_decode($msg,True);
-        if (isset($data["client_id_confirm"])==True)
+        if ((isset($data["operation"])==True) and (isset($data["client_id"])==True))
         {
-          if ($data["client_id_confirm"]===$connections[$client_key]["client_id"])
+          if (($data["operation"]=="confirm_client_id") and ($data["client_id"]===$connections[$client_key]["client_id"]))
           {
             $connections[$client_key]["client_id_confirmed"]=True;
           }
