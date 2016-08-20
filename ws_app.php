@@ -1,5 +1,8 @@
 <?php
 
+# this file is included by a webserver ajax stub handler script to write to the named pipe, which will then be read by the websocket server
+# this script is not included by the websocket server itself
+
 #####################################################################################################
 
 function ws_pipe_data($params)

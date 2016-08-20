@@ -18,7 +18,7 @@ define("PIPE_FILE","../data/notify_iface");
 require_once("../push_server_events.php"); # contains functions to handle events for the specific application
 /*
   optional event handlers:
-  function ws_server_fifo(&$server,&$sockets,&$connections,$fifo_data)
+  function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
   function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
   function ws_server_close(&$connection)
