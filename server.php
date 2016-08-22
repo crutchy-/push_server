@@ -231,7 +231,7 @@ function on_msg($client_key,$data)
       ws_server_open($connections[$client_key]);
     }
     $connections[$client_key]["client_id"]=uniqid("clientid_");
-    $params=array("client_id"=>$connections[$client_key]["client_id"]);
+    $params=array("operation"=>"confirm_client_id","client_id"=>$connections[$client_key]["client_id"]);
     $json=json_encode($params,JSON_PRETTY_PRINT);
     $frame=encode_text_data_frame($json);
     var_dump($json);
@@ -280,6 +280,7 @@ function on_msg($client_key,$data)
           if (($data["operation"]=="confirm_client_id") and ($data["client_id"]===$connections[$client_key]["client_id"]))
           {
             $connections[$client_key]["client_id_confirmed"]=True;
+            var_dump($connections[$client_key]);
           }
         }
         break;
