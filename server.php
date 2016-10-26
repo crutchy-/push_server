@@ -8,8 +8,15 @@ ob_implicit_flush();
 date_default_timezone_set("UTC");
 ini_set("memory_limit","512M");
 
-define("LISTENING_ADDRESS","127.0.0.1");
-define("LISTENING_PORT",50000);
+if ((isset($argv[1])==False) or (isset($argv[2])==False))
+{
+  show_message("to run ws server: php server.php listen_address listen_port");
+  show_message("eg: php server.php 192.168.0.188 50000");
+  return;
+}
+
+define("LISTENING_ADDRESS",trim($argv[1]));
+define("LISTENING_PORT",trim($argv[2]));
 define("SELECT_TIMEOUT",200000); # microseconds (200000 = 0.2 seconds)
 define("SERVER_HEADER","SimpleWS/0.1");
 

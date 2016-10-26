@@ -28,6 +28,13 @@ features/limitations:
 
 ----------------------------------------------------------------------
 
+## running
+
+to run ws server: php server.php listen_address listen_port
+eg: php server.php 192.168.0.188 50000
+
+----------------------------------------------------------------------
+
 ## event handlers
 
 each event handler may be optionally implemented by your application. they are the interfaces by which your application interacts with the websocket server
