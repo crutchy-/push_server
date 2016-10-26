@@ -5,9 +5,9 @@
 
 #####################################################################################################
 
-function ws_pipe_data($params)
+function ws_pipe_data(&$params)
 {
-  define("WS_PIPE_FILE","../data/notify_iface");
+  define("WS_PIPE_FILE","/var/include/vhosts/default/inc/data/notify_iface");
   if (file_exists(WS_PIPE_FILE)==False)
   {
     $params["pipe_status"]="PIPE FILE NOT FOUND";

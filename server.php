@@ -382,7 +382,7 @@ function broadcast_to_others($client_id,$msg)
       show_message("sending to client id \"$client_id\":",True);
       var_dump($msg);
       $frame=encode_text_data_frame($msg);
-      do_reply($client_key,$frame);
+      do_reply($key,$frame);
     }
   }
   return True;
