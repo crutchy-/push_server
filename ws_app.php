@@ -7,22 +7,22 @@
 
 function ws_pipe_data(&$params)
 {
-  define("WS_PIPE_FILE","/var/include/vhosts/default/inc/data/notify_iface");
+  define("XHR_PIPE_FILE","/var/include/vhosts/default/inc/data/ws_notify");
   if (file_exists(WS_PIPE_FILE)==False)
   {
     $params["pipe_status"]="PIPE FILE NOT FOUND";
   }
   else
   {
-    $pipe=fopen(WS_PIPE_FILE,"a");
-    if ($pipe===False)
+    $xhr_pipe=fopen(XHR_PIPE_FILE,"a");
+    if ($xhr_pipe===False)
     {
       $params["pipe_status"]="ERROR OPENING PIPE FILE";
     }
     else
     {
-      fwrite($pipe,json_encode($params));
-      fclose($pipe);
+      fwrite($xhr_pipe,json_encode($params));
+      fclose($xhr_pipe);
       $params["pipe_status"]="OK";
     }
   }

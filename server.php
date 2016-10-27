@@ -20,7 +20,8 @@ define("LISTENING_PORT",trim($argv[2]));
 define("SELECT_TIMEOUT",200000); # microseconds (200000 = 0.2 seconds)
 define("SERVER_HEADER","SimpleWS/0.1");
 
-define("PIPE_FILE","../data/notify_iface");
+define("XHR_PIPE_FILE","../data/ws_notify");
+define("LOG_PIPE_FILE","../data/ws_log");
 
 require_once("../push_server_events.php"); # contains functions to handle events for the specific application
 /*
@@ -45,18 +46,31 @@ if (isset($argv[1])==True)
   }
 }
 
-if (file_exists(PIPE_FILE)==True)
-{
-  unlink(PIPE_FILE);
-}
 umask(0);
-if (posix_mkfifo(PIPE_FILE,0666)==False)
+
+$logging_enabled=False;
+if (file_exists(LOG_PIPE_FILE)==True)
+{
+  unlink(LOG_PIPE_FILE);
+}
+if (posix_mkfifo(LOG_PIPE_FILE,0666)==True)
+{
+  $log_pipe=fopen(LOG_PIPE_FILE,"a+");
+  stream_set_blocking($log_pipe,0);
+  $logging_enabled=True;
+}
+
+if (file_exists(XHR_PIPE_FILE)==True)
+{
+  unlink(XHR_PIPE_FILE);
+}
+if (posix_mkfifo(XHR_PIPE_FILE,0666)==False)
 {
   show_message("ERROR: UNABLE TO MAKE FIFO NAMED PIPE FILE",True);
   return;
 }
-$pipe=fopen(PIPE_FILE,"r+");
-stream_set_blocking($pipe,0);
+$xhr_pipe=fopen(XHR_PIPE_FILE,"r+");
+stream_set_blocking($xhr_pipe,0);
 
 $sockets=array();
 $connections=array();
@@ -71,7 +85,7 @@ stream_set_blocking($server,0);
 $sockets[]=$server;
 while (True)
 {
-  $read=array($pipe);
+  $read=array($xhr_pipe);
   $write=Null;
   $except=Null;
   $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
@@ -79,7 +93,18 @@ while (True)
   {
     if ($change_count>=1)
     {
-      $data=trim(fgets($pipe));
+      $data=trim(fgets($xhr_pipe));
+      if ($data=="q")
+      {
+        foreach ($sockets as $key => $socket)
+        {
+          if ($sockets[$key]!==$server)
+          {
+            close_client($key,1001,"server shutting down");
+          }
+        }
+        break;
+      }
       if (function_exists("ws_server_shutdown")==True)
       {
         ws_server_fifo($server,$sockets,$connections,$data);
@@ -187,8 +212,14 @@ foreach ($sockets as $key => $socket)
 stream_socket_shutdown($server,STREAM_SHUT_RDWR);
 fclose($server);
 
-fclose($pipe);
-unlink(PIPE_FILE);
+fclose($xhr_pipe);
+unlink(XHR_PIPE_FILE);
+
+if ($logging_enabled==True)
+{
+  fclose($log_pipe);
+}
+unlink(LOG_PIPE_FILE);
 
 #####################################################################################################
 
@@ -220,7 +251,9 @@ function on_msg($client_key,$data)
     # TODO: CHECK "Origin" HEADER (COMPARE TO CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
     show_message("from client (connecting):",True);
+    ob_start();
     var_dump($data);
+    show_message(ob_get_clean());
     $headers=extract_headers($data);
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
     $sec_websocket_accept=base64_encode(sha1($sec_websocket_key."258EAFA5-E914-47DA-95CA-C5AB0DC85B11",True));
@@ -241,7 +274,9 @@ function on_msg($client_key,$data)
     $params=array("operation"=>"confirm_client_id","client_id"=>$connections[$client_key]["client_id"]);
     $json=json_encode($params,JSON_PRETTY_PRINT);
     $frame=encode_text_data_frame($json);
+    ob_start();
     var_dump($json);
+    show_message(ob_get_clean());
     do_reply($client_key,$frame);
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
@@ -278,7 +313,9 @@ function on_msg($client_key,$data)
         {
           show_message("received initial text frame of a fragmented series",True);
         }
+        ob_start();
         var_dump($frame);
+        show_message(ob_get_clean());
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
         $data=json_decode($msg,True);
@@ -287,7 +324,9 @@ function on_msg($client_key,$data)
           if (($data["operation"]=="confirm_client_id") and ($data["client_id"]===$connections[$client_key]["client_id"]))
           {
             $connections[$client_key]["client_id_confirmed"]=True;
+            ob_start();
             var_dump($connections[$client_key]);
+            show_message(ob_get_clean());
           }
         }
         break;
@@ -365,7 +404,9 @@ function broadcast_to_all($msg)
     if ($conn["client_id_confirmed"]==True)
     {
       show_message("sending to client id \"$client_id\":",True);
+      ob_start();
       var_dump($msg);
+      show_message(ob_get_clean());
       $frame=encode_text_data_frame($msg);
       do_reply($client_key,$frame);
     }
@@ -387,7 +428,9 @@ function broadcast_to_others($client_id,$msg)
     if (($conn["client_id"]!==$client_id) and ($conn["client_id_confirmed"]==True))
     {
       show_message("sending to client id \"$client_id\":",True);
+      ob_start();
       var_dump($msg);
+      show_message(ob_get_clean());
       $frame=encode_text_data_frame($msg);
       do_reply($key,$frame);
     }
@@ -420,7 +463,9 @@ function send_text($client_id,$msg)
     return False;
   }
   show_message("sending to client id \"$client_id\":",True);
+  ob_start();
   var_dump($msg);
+  show_message(ob_get_clean());
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
   return True;
@@ -574,10 +619,20 @@ function do_reply($client_key,&$msg)
 
 function show_message($msg,$star=False)
 {
+  global $logging_enabled;
+  global $log_pipe;
   $prefix="";
   if ($star==True)
   {
     $prefix="*** ";
+  }
+  if ($logging_enabled==True)
+  {
+    if (flock($log_pipe,LOCK_EX)==True)
+    {
+      fwrite($log_pipe,$prefix.$msg.PHP_EOL);
+    }
+    flock($log_pipe,LOCK_UN);
   }
   echo $prefix.$msg.PHP_EOL;
 }
