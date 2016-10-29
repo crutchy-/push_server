@@ -196,7 +196,7 @@ function broadcast_to_all($msg)
   show_message("broadcast: ".$msg,True);
   foreach ($connections as $key => $conn)
   {
-    do_reply($client_key,$msg);
+    do_reply($key,$msg);
   }
 }
 

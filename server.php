@@ -403,12 +403,12 @@ function broadcast_to_all($msg)
   {
     if ($conn["client_id_confirmed"]==True)
     {
-      show_message("sending to client id \"$client_id\":",True);
+      show_message("sending to client id \"".$conn["client_id"]."\":",True);
       ob_start();
       var_dump($msg);
       show_message(ob_get_clean());
       $frame=encode_text_data_frame($msg);
-      do_reply($client_key,$frame);
+      do_reply($key,$frame);
     }
   }
 }
