@@ -105,7 +105,7 @@ while (True)
         }
         break;
       }
-      if (function_exists("ws_server_shutdown")==True)
+      if (function_exists("ws_server_fifo")==True)
       {
         ws_server_fifo($server,$sockets,$connections,$data);
       }
