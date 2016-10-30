@@ -43,6 +43,10 @@ stream_set_blocking($server,0);
 $sockets[]=$server;
 while (True)
 {
+  if (file_exists(LOG_PIPE_FILE)==False)
+  {
+    break;
+  }
   $read=array($log_pipe);
   $write=Null;
   $except=Null;
@@ -51,7 +55,12 @@ while (True)
   {
     if ($change_count>=1)
     {
-      broadcast_to_all(fgets($log_pipe));
+      $data=fgets($log_pipe);
+      if (trim($data)=="q")
+      {
+        break;
+      }
+      broadcast_to_all($data);
     }
   }
   $read=array(STDIN);
@@ -65,18 +74,10 @@ while (True)
       $data=trim(fgets(STDIN));
       if ($data=="q")
       {
-        foreach ($sockets as $key => $socket)
-        {
-          if ($sockets[$key]!==$server)
-          {
-            close_client($key,1001,"server shutting down");
-          }
-        }
         break;
       }
     }
   }
-  ws_server_loop($server,$sockets,$connections);
   $read=$sockets;
   $write=Null;
   $except=Null;
@@ -134,7 +135,6 @@ while (True)
     }
   }
 }
-ws_server_shutdown($server,$sockets,$connections);
 foreach ($sockets as $key => $socket)
 {
   if ($sockets[$key]!==$server)
@@ -176,11 +176,10 @@ function on_msg($client_key,$data)
 
 #####################################################################################################
 
-function close_client($client_key,$status_code=False,$reason="")
+function close_client($client_key)
 {
   global $sockets;
   global $connections;
-  ws_server_close($connections[$client_key]);
   show_message("closing client connection",True);
   stream_socket_shutdown($sockets[$client_key],STREAM_SHUT_RDWR);
   fclose($sockets[$client_key]);
@@ -193,7 +192,6 @@ function close_client($client_key,$status_code=False,$reason="")
 function broadcast_to_all($msg)
 {
   global $connections;
-  show_message("broadcast: ".$msg,True);
   foreach ($connections as $key => $conn)
   {
     do_reply($key,$msg);
@@ -222,43 +220,14 @@ function do_reply($client_key,&$msg)
 
 #####################################################################################################
 
-function ws_server_open(&$connection)
-{
-
-}
-
-#####################################################################################################
-
-function ws_server_close(&$connection)
-{
-
-}
-
-#####################################################################################################
-
-function ws_server_loop(&$server,&$sockets,&$connections)
-{
-
-}
-
-#####################################################################################################
-
-function ws_server_shutdown(&$server,&$sockets,&$connections)
-{
-
-}
-
-#####################################################################################################
-
 function show_message($msg,$star=False)
 {
-  global $logging_enabled;
   $prefix="";
   if ($star==True)
   {
     $prefix="*** ";
   }
-  echo $prefix.$msg.PHP_EOL;
+  echo $prefix.rtrim($msg).PHP_EOL;
 }
 
 #####################################################################################################
