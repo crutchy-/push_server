@@ -20,10 +20,12 @@ define("LISTENING_PORT",trim($argv[2]));
 define("SELECT_TIMEOUT",200000); # microseconds (200000 = 0.2 seconds)
 define("SERVER_HEADER","SimpleWS/0.1");
 
-define("XHR_PIPE_FILE","../data/ws_notify");
-define("LOG_PIPE_FILE","../data/ws_log");
+define("ROOT_PATH","/var/include/vhosts/default/inc");
 
-require_once("../push_server_events.php"); # contains functions to handle events for the specific application
+define("XHR_PIPE_FILE",ROOT_PATH."/data/ws_notify");
+define("LOG_PIPE_FILE",ROOT_PATH."/data/ws_log");
+
+require_once(ROOT_PATH."/push_server_events.php"); # contains functions to handle events for the specific application
 /*
   optional event handlers:
   function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)

@@ -19,15 +19,27 @@ define("LISTENING_ADDRESS",trim($argv[1]));
 define("LISTENING_PORT",trim($argv[2]));
 define("SELECT_TIMEOUT",200000); # microseconds (200000 = 0.2 seconds)
 
-define("LOG_PIPE_FILE","../data/ws_log");
+define("ROOT_PATH","/var/include/vhosts/default/inc");
+
+define("LOG_PIPE_FILE",ROOT_PATH."/data/ws_log");
 
 set_error_handler("error_handler");
 
+# include delay to allow push server to create log pipe file on system startup
+$t=microtime(True);
+while ((microtime(True)-$t)<5)
+{
+  if (file_exists(LOG_PIPE_FILE)==True)
+  {
+    break;
+  }
+}
 if (file_exists(LOG_PIPE_FILE)==False)
 {
   show_message("PIPE FILE NOT FOUND");
   return;
 }
+
 $log_pipe=fopen(LOG_PIPE_FILE,"r");
 
 $sockets=array();

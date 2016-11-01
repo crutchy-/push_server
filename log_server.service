@@ -1,13 +1,13 @@
-# copy to /etc/systemd/system
-# systemctl enable log_server.service
-
 [Unit]
 Description=web socket log server
-After=network.target
+Requires=push_server.service
+After=push_server.service
 
 [Service]
+User=edr
 Type=simple
-ExecStart=php /var/include/vhosts/default/inc/push_server/log-server.php localhost 50001
+ExecStart=/usr/bin/php /var/include/vhosts/default/inc/push_server/log-server.php localhost 50001
+ExecStop=/bin/sh -c "echo q > /proc/$MAINPID/fd/0"
 
 [Install]
 WantedBy=multi-user.target
