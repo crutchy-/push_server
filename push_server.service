@@ -1,12 +1,11 @@
 [Unit]
 Description=web socket server
-After=network.target network-online.target
+After=network-online.target
 
 [Service]
 User=edr
 Type=simple
-ExecStart=/usr/bin/php /var/include/vhosts/default/inc/push_server/server.php 192.168.0.188 50000
-ExecStop=/bin/sh -c "echo q > /proc/$MAINPID/fd/0"
+ExecStart=/usr/bin/php /var/include/vhosts/default/inc/push_server/server.php
 
 [Install]
 WantedBy=multi-user.target

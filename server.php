@@ -8,24 +8,43 @@ ob_implicit_flush();
 date_default_timezone_set("UTC");
 ini_set("memory_limit","512M");
 
-if ((isset($argv[1])==False) or (isset($argv[2])==False))
+define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/push_server.conf");
+if (file_exists(SETTINGS_FILENAME)==False)
 {
-  show_message("to run ws server: php server.php listen_address listen_port");
-  show_message("eg: php server.php 192.168.0.188 50000");
+  show_message("ERROR: SETTINGS FILE NOT FOUND",True);
   return;
 }
+$settings=file_get_contents(SETTINGS_FILENAME);
+$settings=explode(PHP_EOL,$settings);
+for ($i=0;$i<count($settings);$i++)
+{
+  $line=trim($settings[$i]);
+  if ($line=="")
+  {
+    continue;
+  }
+  $keyval=explode("=",$line);
+  $key=array_shift($keyval);
+  $val=implode("=",$keyval);
+  define($key,$val);
+}
 
-define("LISTENING_ADDRESS",trim($argv[1]));
-define("LISTENING_PORT",trim($argv[2]));
-define("SELECT_TIMEOUT",200000); # microseconds (200000 = 0.2 seconds)
-define("SERVER_HEADER","SimpleWS/0.1");
+/* example settings file (all keys required):
+LISTENING_ADDRESS=localhost
+LISTENING_PORT=50000
+SELECT_TIMEOUT=200000
+SERVER_HEADER=SimplePHPWS
+XHR_PIPE_FILE=/var/include/vhosts/default/inc/data/ws_notify
+EVENTS_INCLUDE_FILE=/var/include/vhosts/default/inc/push_server_events.php
+*/
 
-define("ROOT_PATH","/var/include/vhosts/default/inc");
+if (file_exists(EVENTS_INCLUDE_FILE)==False)
+{
+  show_message("ERROR: EVENTS INCLUDE FILE NOT FOUND",True);
+  return;
+}
+require_once(EVENTS_INCLUDE_FILE); # contains functions to handle events for the specific application
 
-define("XHR_PIPE_FILE",ROOT_PATH."/data/ws_notify");
-define("LOG_PIPE_FILE",ROOT_PATH."/data/ws_log");
-
-require_once(ROOT_PATH."/push_server_events.php"); # contains functions to handle events for the specific application
 /*
   optional event handlers:
   function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
@@ -39,29 +58,7 @@ require_once(ROOT_PATH."/push_server_events.php"); # contains functions to handl
 
 set_error_handler("error_handler");
 
-if (isset($argv[1])==True)
-{
-  if ($argv[1]=="test")
-  {
-    run_all_tests();
-    return;
-  }
-}
-
 umask(0);
-
-$logging_enabled=False;
-if (file_exists(LOG_PIPE_FILE)==True)
-{
-  unlink(LOG_PIPE_FILE);
-}
-if (posix_mkfifo(LOG_PIPE_FILE,0666)==True)
-{
-  $log_pipe=fopen(LOG_PIPE_FILE,"a+");
-  stream_set_blocking($log_pipe,0);
-  $logging_enabled=True;
-}
-
 if (file_exists(XHR_PIPE_FILE)==True)
 {
   unlink(XHR_PIPE_FILE);
@@ -96,17 +93,6 @@ while (True)
     if ($change_count>=1)
     {
       $data=trim(fgets($xhr_pipe));
-      if ($data=="q")
-      {
-        foreach ($sockets as $key => $socket)
-        {
-          if ($sockets[$key]!==$server)
-          {
-            close_client($key,1001,"server shutting down");
-          }
-        }
-        break;
-      }
       if (function_exists("ws_server_fifo")==True)
       {
         ws_server_fifo($server,$sockets,$connections,$data);
@@ -195,7 +181,17 @@ while (True)
         close_client($client_key);
         continue;
       }
-      on_msg($client_key,$data);
+      if (on_msg($client_key,$data)=="quit")
+      {
+        foreach ($sockets as $key => $socket)
+        {
+          if ($sockets[$key]!==$server)
+          {
+            close_client($key,1001,"server shutting down");
+          }
+        }
+        break 2;
+      }
     }
   }
 }
@@ -216,12 +212,6 @@ fclose($server);
 
 fclose($xhr_pipe);
 unlink(XHR_PIPE_FILE);
-
-if ($logging_enabled==True)
-{
-  fclose($log_pipe);
-}
-unlink(LOG_PIPE_FILE);
 
 #####################################################################################################
 
@@ -253,9 +243,7 @@ function on_msg($client_key,$data)
     # TODO: CHECK "Origin" HEADER (COMPARE TO CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
     show_message("from client (connecting):",True);
-    ob_start();
-    var_dump($data);
-    show_message(ob_get_clean());
+    show_message(var_dump_to_str($data));
     $headers=extract_headers($data);
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
     $sec_websocket_accept=base64_encode(sha1($sec_websocket_key."258EAFA5-E914-47DA-95CA-C5AB0DC85B11",True));
@@ -276,9 +264,7 @@ function on_msg($client_key,$data)
     $params=array("operation"=>"confirm_client_id","client_id"=>$connections[$client_key]["client_id"]);
     $json=json_encode($params,JSON_PRETTY_PRINT);
     $frame=encode_text_data_frame($json);
-    ob_start();
-    var_dump($json);
-    show_message(ob_get_clean());
+    show_message(var_dump_to_str($json));
     do_reply($client_key,$frame);
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
@@ -288,7 +274,7 @@ function on_msg($client_key,$data)
     {
       # illegal frame
       close_client($client_key);
-      return;
+      return "";
     }
     $msg="";
     switch ($frame["opcode"])
@@ -304,7 +290,7 @@ function on_msg($client_key,$data)
         }
         else
         {
-          return;
+          return "";
         }
       case 1: # text frame
         if ($frame["fin"]==True)
@@ -315,20 +301,21 @@ function on_msg($client_key,$data)
         {
           show_message("received initial text frame of a fragmented series",True);
         }
-        ob_start();
-        var_dump($frame);
-        show_message(ob_get_clean());
+        show_message(var_dump_to_str($frame));
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
         $data=json_decode($msg,True);
         if ((isset($data["operation"])==True) and (isset($data["client_id"])==True))
         {
-          if (($data["operation"]=="confirm_client_id") and ($data["client_id"]===$connections[$client_key]["client_id"]))
+          switch ($data["operation"])
           {
-            $connections[$client_key]["client_id_confirmed"]=True;
-            ob_start();
-            var_dump($connections[$client_key]);
-            show_message(ob_get_clean());
+            case "confirm_client_id":
+              if ($data["client_id"]===$connections[$client_key]["client_id"])
+              {
+                $connections[$client_key]["client_id_confirmed"]=True;
+                show_message(var_dump_to_str($connections[$client_key]));
+              }
+              break;
           }
         }
         break;
@@ -343,7 +330,7 @@ function on_msg($client_key,$data)
           show_message("received close frame - invalid/missing status code ",True);
           close_client($client_key);
         }
-        return;
+        return "";
       case 9: # ping
         show_message("received ping frame",True);
         $reply_frame=encode_frame(10,$frame["payload"]);
@@ -352,14 +339,14 @@ function on_msg($client_key,$data)
         {
           ws_server_ping($connections[$client_key],$frame);
         }
-        return;
+        return "";
       case 10: # pong
         show_message("received unsolicited pong frame",True);
-        return;
+        return "";
       default:
         show_message("received frame with unsupported opcode - terminating connection",True);
         close_client($client_key);
-        return;
+        return "";
     }
     if (function_exists("ws_server_text")==True)
     {
@@ -368,6 +355,7 @@ function on_msg($client_key,$data)
     #$reply_frame=encode_text_data_frame($msg);
     #do_reply($client_key,$reply_frame);
   }
+  return "";
 }
 
 #####################################################################################################
@@ -406,9 +394,7 @@ function broadcast_to_all($msg)
     if ($conn["client_id_confirmed"]==True)
     {
       show_message("sending to client id \"".$conn["client_id"]."\":",True);
-      ob_start();
-      var_dump($msg);
-      show_message(ob_get_clean());
+      show_message(var_dump_to_str($msg));
       $frame=encode_text_data_frame($msg);
       do_reply($key,$frame);
     }
@@ -430,9 +416,7 @@ function broadcast_to_others($client_id,$msg)
     if (($conn["client_id"]!==$client_id) and ($conn["client_id_confirmed"]==True))
     {
       show_message("sending to client id \"$client_id\":",True);
-      ob_start();
-      var_dump($msg);
-      show_message(ob_get_clean());
+      show_message(var_dump_to_str($msg));
       $frame=encode_text_data_frame($msg);
       do_reply($key,$frame);
     }
@@ -465,9 +449,7 @@ function send_text($client_id,$msg)
     return False;
   }
   show_message("sending to client id \"$client_id\":",True);
-  ob_start();
-  var_dump($msg);
-  show_message(ob_get_clean());
+  show_message(var_dump_to_str($msg));
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
   return True;
@@ -621,22 +603,21 @@ function do_reply($client_key,&$msg)
 
 function show_message($msg,$star=False)
 {
-  global $logging_enabled;
-  global $log_pipe;
   $prefix="";
   if ($star==True)
   {
     $prefix="*** ";
   }
-  if ($logging_enabled==True)
-  {
-    if (flock($log_pipe,LOCK_EX)==True)
-    {
-      fwrite($log_pipe,$prefix.$msg.PHP_EOL);
-    }
-    flock($log_pipe,LOCK_UN);
-  }
   echo $prefix.$msg.PHP_EOL;
+}
+
+#####################################################################################################
+
+function var_dump_to_str($var)
+{
+  ob_start();
+  var_dump($var);
+  return ob_get_clean();
 }
 
 #####################################################################################################
@@ -672,28 +653,6 @@ function get_header($lines,$header)
     }
   }
   return False;
-}
-
-#####################################################################################################
-
-function run_all_tests()
-{
-  $lengths=array(0,1,5,124,125,126,127,128,129,130,65533,65534,65535,65536,65537,66000,100000000);
-  for ($i=0;$i<count($lengths);$i++)
-  {
-    show_message("running test $i");
-    $payload=str_repeat("*",$lengths[$i]);
-    $encoded=encode_text_data_frame($payload);
-    $decoded=decode_frame($encoded);
-    if ($decoded["payload"]<>$payload)
-    {
-      show_message("test failed ($i)",True);
-      var_dump($payload);
-      var_dump($encoded);
-      var_dump($decoded);
-      return;
-    }
-  }
 }
 
 #####################################################################################################
