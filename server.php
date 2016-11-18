@@ -403,10 +403,25 @@ function broadcast_to_all($msg)
 
 #####################################################################################################
 
+function validate_client_id($client_id)
+{
+  global $connections;
+  foreach ($connections as $key => $conn)
+  {
+    if (($conn["client_id"]==$client_id) and ($conn["client_id_confirmed"]==True))
+    {
+      return True;
+    }
+  }
+  return False;
+}
+
+#####################################################################################################
+
 function broadcast_to_others($client_id,$msg)
 {
   global $connections;
-  if ($client_id=="")
+  if (validate_client_id($client_id)==False)
   {
     show_message("SEND TEXT ERROR: INVALID CLIENT ID",True);
     return False;
