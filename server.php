@@ -38,7 +38,7 @@ WEBSOCKET_XHR_PIPE_FILE=/var/include/vhosts/default/inc/data/ws_notify
 WEBSOCKET_EVENTS_INCLUDE_FILE=/var/include/vhosts/default/inc/push_server_events.php
 WEBSOCKET_LOG_PATH=/var/include/vhosts/default/inc/ws_logs/
 DB_HOST=localhost
-DB_SCHEMA=edr_doc
+DB_SCHEMA=myapp
 DB_USER=www
 DB_PASSWORD=***
 */
