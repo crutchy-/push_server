@@ -8,7 +8,7 @@ ob_implicit_flush();
 date_default_timezone_set("UTC");
 ini_set("memory_limit","512M");
 
-define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/push_server.conf");
+define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/server_shared.conf");
 if (file_exists(SETTINGS_FILENAME)==False)
 {
   show_message("ERROR: SETTINGS FILE NOT FOUND",True);
@@ -30,22 +30,29 @@ for ($i=0;$i<count($settings);$i++)
 }
 
 /* example settings file (all keys required):
-LISTENING_ADDRESS=localhost
-LISTENING_PORT=50000
-SELECT_TIMEOUT=200000
-SERVER_HEADER=SimplePHPWS
-XHR_PIPE_FILE=/var/include/vhosts/default/inc/data/ws_notify
-EVENTS_INCLUDE_FILE=/var/include/vhosts/default/inc/push_server_events.php
+WEBSOCKET_LISTENING_ADDRESS=localhost
+WEBSOCKET_LISTENING_PORT=50000
+WEBSOCKET_SELECT_TIMEOUT=200000
+WEBSOCKET_SERVER_HEADER=SimplePHPWS
+WEBSOCKET_XHR_PIPE_FILE=/var/include/vhosts/default/inc/data/ws_notify
+WEBSOCKET_EVENTS_INCLUDE_FILE=/var/include/vhosts/default/inc/push_server_events.php
+WEBSOCKET_LOG_PATH=/var/include/vhosts/default/inc/ws_logs/
+DB_HOST=localhost
+DB_SCHEMA=edr_doc
+DB_USER=www
+DB_PASSWORD=***
 */
 
-if (file_exists(EVENTS_INCLUDE_FILE)==False)
+if (file_exists(WEBSOCKET_EVENTS_INCLUDE_FILE)==False)
 {
   show_message("ERROR: EVENTS INCLUDE FILE NOT FOUND",True);
   return;
 }
-require_once(EVENTS_INCLUDE_FILE); # contains functions to handle events for the specific application
+require_once(WEBSOCKET_EVENTS_INCLUDE_FILE); # contains functions to handle events for the specific application
 
 /*
+  mandatory event handlers:
+  function ws_server_authenticate(&$connection,&$frame) <-- return True for authenticated or False otherwise
   optional event handlers:
   function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
   function ws_server_loop(&$server,&$sockets,&$connections)
@@ -59,27 +66,27 @@ require_once(EVENTS_INCLUDE_FILE); # contains functions to handle events for the
 set_error_handler("error_handler");
 
 umask(0);
-if (file_exists(XHR_PIPE_FILE)==True)
+if (file_exists(WEBSOCKET_XHR_PIPE_FILE)==True)
 {
-  unlink(XHR_PIPE_FILE);
+  unlink(WEBSOCKET_XHR_PIPE_FILE);
 }
-if (posix_mkfifo(XHR_PIPE_FILE,0666)==False)
+if (posix_mkfifo(WEBSOCKET_XHR_PIPE_FILE,0666)==False)
 {
   show_message("ERROR: UNABLE TO MAKE FIFO NAMED PIPE FILE",True);
   return;
 }
-$xhr_pipe=fopen(XHR_PIPE_FILE,"r+");
+$xhr_pipe=fopen(WEBSOCKET_XHR_PIPE_FILE,"r+");
 stream_set_blocking($xhr_pipe,0);
 
 $sockets=array();
 $connections=array();
-$server=stream_socket_server("tcp://".LISTENING_ADDRESS.":".LISTENING_PORT,$err_no,$err_msg);
+$server=stream_socket_server("tcp://".WEBSOCKET_LISTENING_ADDRESS.":".WEBSOCKET_LISTENING_PORT,$err_no,$err_msg);
 if ($server===False)
 {
   show_message("could not bind to socket: ".$err_msg,True);
   return;
 }
-show_message("push_server started");
+show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STARTED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 stream_set_blocking($server,0);
 $sockets[]=$server;
 while (True)
@@ -87,7 +94,7 @@ while (True)
   $read=array($xhr_pipe);
   $write=Null;
   $except=Null;
-  $change_count=stream_select($read,$write,$except,0,SELECT_TIMEOUT);
+  $change_count=stream_select($read,$write,$except,0,WEBSOCKET_SELECT_TIMEOUT);
   if ($change_count!==False)
   {
     if ($change_count>=1)
@@ -211,7 +218,9 @@ stream_socket_shutdown($server,STREAM_SHUT_RDWR);
 fclose($server);
 
 fclose($xhr_pipe);
-unlink(XHR_PIPE_FILE);
+unlink(WEBSOCKET_XHR_PIPE_FILE);
+
+show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
 #####################################################################################################
 
@@ -248,7 +257,7 @@ function on_msg($client_key,$data)
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
     $sec_websocket_accept=base64_encode(sha1($sec_websocket_key."258EAFA5-E914-47DA-95CA-C5AB0DC85B11",True));
     $msg="HTTP/1.1 101 Switching Protocols".PHP_EOL;
-    $msg.="Server: ".SERVER_HEADER.PHP_EOL;
+    $msg.="Server: ".WEBSOCKET_SERVER_HEADER.PHP_EOL;
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
     $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
@@ -312,8 +321,11 @@ function on_msg($client_key,$data)
             case "confirm_client_id":
               if ($data["client_id"]===$connections[$client_key]["client_id"])
               {
-                $connections[$client_key]["client_id_confirmed"]=True;
-                show_message(var_dump_to_str($connections[$client_key]));
+                if (ws_server_authenticate($connections[$client_key],$frame)==True)
+                {
+                  $connections[$client_key]["client_id_confirmed"]=True;
+                  show_message(var_dump_to_str($connections[$client_key]));
+                }
               }
               break;
           }
@@ -623,7 +635,9 @@ function show_message($msg,$star=False)
   {
     $prefix="*** ";
   }
-  echo $prefix.$msg.PHP_EOL;
+  $output="[".date("Y-m-d H:i:s")."]  ".$prefix.$msg.PHP_EOL;
+  echo $output;
+  file_put_contents(WEBSOCKET_LOG_PATH."ws_".date("Ymd").".log",$output,FILE_APPEND);
 }
 
 #####################################################################################################

@@ -9,15 +9,10 @@ root@cloudsteel64:/var/include/vhosts/default/inc/push_server# cp push_server.se
 root@cloudsteel64:/var/include/vhosts/default/inc/push_server# systemctl enable push_server.service
 Created symlink from /etc/systemd/system/multi-user.target.wants/push_server.service to /etc/systemd/system/push_server.service.
 
-root@cloudsteel64:/var/include/vhosts/default/inc/push_server# cp log_server.service /etc/systemd/system/log_server.service
-root@cloudsteel64:/var/include/vhosts/default/inc/push_server# systemctl enable log_server.service
-Created symlink from /etc/systemd/system/multi-user.target.wants/log_server.service to /etc/systemd/system/log_server.service.
-
 If unit file changed on disk, do 'systemctl daemon-reload'
 
 su
 cp /var/include/vhosts/default/inc/push_server/push_server.service /etc/systemd/system/push_server.service
-cp /var/include/vhosts/default/inc/push_server/log_server.service /etc/systemd/system/log_server.service
 systemctl daemon-reload
 
 
