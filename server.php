@@ -8,6 +8,8 @@ ob_implicit_flush();
 date_default_timezone_set("UTC");
 ini_set("memory_limit","512M");
 
+require_once("shared_utils.php");
+
 define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/server_shared.conf");
 if (file_exists(SETTINGS_FILENAME)==False)
 {
@@ -647,41 +649,6 @@ function var_dump_to_str($var)
   ob_start();
   var_dump($var);
   return ob_get_clean();
-}
-
-#####################################################################################################
-
-function extract_headers($response)
-{
-  $delim="\r\n\r\n";
-  $i=strpos($response,$delim);
-  if ($i===False)
-  {
-    return False;
-  }
-  $headers=substr($response,0,$i);
-  return explode(PHP_EOL,$headers);
-}
-
-#####################################################################################################
-
-function get_header($lines,$header)
-{
-  for ($i=0;$i<count($lines);$i++)
-  {
-    $line=trim($lines[$i]);
-    $parts=explode(":",$line);
-    if (count($parts)>=2)
-    {
-      $key=trim(array_shift($parts));
-      $value=trim(implode(":",$parts));
-      if (strtolower($key)==strtolower($header))
-      {
-        return $value;
-      }
-    }
-  }
-  return False;
 }
 
 #####################################################################################################
