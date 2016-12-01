@@ -60,7 +60,7 @@ require_once(WEBSOCKET_EVENTS_INCLUDE_FILE); # contains functions to handle even
   function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
   function ws_server_close(&$connection)
-  function ws_server_text(&$connection,&$frame)
+  function ws_server_text(&$connection,$msg)
   function ws_server_ping(&$connection,&$frame)
   function ws_server_shutdown(&$server,&$sockets,&$connections)
 */
@@ -362,12 +362,10 @@ function on_msg($client_key,$data)
         close_client($client_key);
         return "";
     }
-    if (function_exists("ws_server_text")==True)
+    if (($msg<>"") and (function_exists("ws_server_text")==True))
     {
-      ws_server_text($connections[$client_key],$frame);
+      ws_server_text($connections[$client_key],$msg);
     }
-    #$reply_frame=encode_text_data_frame($msg);
-    #do_reply($client_key,$reply_frame);
   }
   return "";
 }
