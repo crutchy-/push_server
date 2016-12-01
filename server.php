@@ -273,7 +273,7 @@ function on_msg($client_key,$data)
     }
     $connections[$client_key]["client_id"]=uniqid("clientid_");
     $params=array("operation"=>"confirm_client_id","client_id"=>$connections[$client_key]["client_id"]);
-    $json=json_encode($params,JSON_PRETTY_PRINT);
+    $json=json_encode($params);
     $frame=encode_text_data_frame($json);
     show_message(var_dump_to_str($json));
     do_reply($client_key,$frame);
@@ -327,6 +327,9 @@ function on_msg($client_key,$data)
                 {
                   $connections[$client_key]["client_id_confirmed"]=True;
                   show_message(var_dump_to_str($connections[$client_key]));
+                  $params=array("operation"=>"client_id_confirmed","client_id"=>$connections[$client_key]["client_id"]);
+                  $json=json_encode($params);
+                  send_text($data["client_id"],$json);
                 }
               }
               break;
