@@ -157,7 +157,7 @@ function ws_server_close(&$connection)
 
 syntax:
 ````
-function ws_server_text(&$connection,$msg)
+function ws_server_text(&$connections,&$connection,$msg)
 ````
 
 ### ws_server_ping event handler (optional)
