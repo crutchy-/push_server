@@ -146,11 +146,18 @@ syntax:
 function ws_server_open(&$connection)
 ````
 
-### ws_server_close event handler (optional)
+### ws_server_before_close event handler (optional)
 
 syntax:
 ````
-function ws_server_close(&$connection)
+function ws_server_before_close(&$connections,&$connection)
+````
+
+### ws_server_after_close event handler (optional)
+
+syntax:
+````
+function ws_server_after_close(&$connections)
 ````
 
 ### ws_server_text event handler (optional)

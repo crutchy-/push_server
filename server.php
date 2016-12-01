@@ -59,7 +59,8 @@ require_once(WEBSOCKET_EVENTS_INCLUDE_FILE); # contains functions to handle even
   function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
   function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
-  function ws_server_close(&$connection)
+  function ws_server_before_close(&$connections,&$connection)
+  function ws_server_after_close(&$connections)
   function ws_server_text(&$connections,&$connection,$client_key,$client_id,$msg)
   function ws_server_ping(&$connection,&$frame)
   function ws_server_shutdown(&$server,&$sockets,&$connections)
@@ -379,9 +380,9 @@ function close_client($client_key,$status_code=False,$reason="")
 {
   global $sockets;
   global $connections;
-  if (function_exists("ws_server_close")==True)
+  if (function_exists("ws_server_before_close")==True)
   {
-    ws_server_close($connections[$client_key]);
+    ws_server_before_close($connections,$connections[$client_key]);
   }
   if ($status_code!==False)
   {
@@ -397,6 +398,10 @@ function close_client($client_key,$status_code=False,$reason="")
   fclose($sockets[$client_key]);
   unset($sockets[$client_key]);
   unset($connections[$client_key]);
+  if (function_exists("ws_server_after_close")==True)
+  {
+    ws_server_after_close($connections);
+  }
 }
 
 #####################################################################################################
