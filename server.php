@@ -56,17 +56,27 @@ require_once(WEBSOCKET_EVENTS_INCLUDE_FILE); # contains functions to handle even
   mandatory event handlers:
   function ws_server_authenticate(&$connection,&$frame) <-- return True for authenticated or False otherwise
   optional event handlers:
+  function ws_server_initialize()
+  function ws_server_started(&$server,&$sockets,&$connections)
   function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
   function ws_server_loop(&$server,&$sockets,&$connections)
   function ws_server_open(&$connection)
+  function ws_server_connect(&$connections,&$connection,$client_key)
   function ws_server_before_close(&$connections,&$connection)
   function ws_server_after_close(&$connections)
+  function ws_server_read(&$connections,&$connection,$client_key,$data)
   function ws_server_text(&$connections,&$connection,$client_key,$client_id,$msg)
   function ws_server_ping(&$connection,&$frame)
   function ws_server_shutdown(&$server,&$sockets,&$connections)
+  function ws_server_finalize()
 */
 
 set_error_handler("error_handler");
+
+if (function_exists("ws_server_initialize")==True)
+{
+  ws_server_initialize();
+}
 
 umask(0);
 if (file_exists(WEBSOCKET_XHR_PIPE_FILE)==True)
@@ -92,6 +102,10 @@ if ($server===False)
 show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STARTED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 stream_set_blocking($server,0);
 $sockets[]=$server;
+if (function_exists("ws_server_started")==True)
+{
+  ws_server_started($server,$sockets,$connections);
+}
 while (True)
 {
   $read=array($xhr_pipe);
@@ -168,6 +182,10 @@ while (True)
       $new_connection["state"]="CONNECTING";
       $connections[$client_key]=$new_connection;
       show_message("client connected");
+      if (function_exists("ws_server_connect")==True)
+      {
+        ws_server_connect($connections,$connections[$client_key],$client_key);
+      }
     }
     else
     {
@@ -191,7 +209,7 @@ while (True)
         close_client($client_key);
         continue;
       }
-      if (on_msg($client_key,$data)=="quit")
+      if (on_msg($client_key,$data)=="quit") # NOTE: NOT PART OF WEBSOCKET PROTOCOL
       {
         foreach ($sockets as $key => $socket)
         {
@@ -223,6 +241,11 @@ fclose($server);
 fclose($xhr_pipe);
 unlink(WEBSOCKET_XHR_PIPE_FILE);
 
+if (function_exists("ws_server_finalize")==True)
+{
+  ws_server_finalize();
+}
+
 show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 
 #####################################################################################################
@@ -249,6 +272,14 @@ function on_msg($client_key,$data)
 {
   global $sockets;
   global $connections;
+  if (function_exists("ws_server_read")==True)
+  {
+    $result=ws_server_read($connections,$connections[$client_key],$client_key,$data);
+    if ($result!=="")
+    {
+      return $result;
+    }
+  }
   if ($connections[$client_key]["state"]=="CONNECTING")
   {
     # TODO: CHECK "Host" HEADER (COMPARE TO CONFIG SETTING)

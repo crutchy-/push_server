@@ -125,6 +125,20 @@ syntax:
 function ws_server_authenticate(&$connection,&$frame)
 ````
 
+### ws_server_initialize event handler (optional)
+
+syntax:
+````
+function ws_server_initialize()
+````
+
+### ws_server_started event handler (optional)
+
+syntax:
+````
+function ws_server_started(&$server,&$sockets,&$connections)
+````
+
 ### ws_server_fifo event handler (optional)
 
 syntax:
@@ -160,6 +174,13 @@ syntax:
 function ws_server_after_close(&$connections)
 ````
 
+### ws_server_read event handler (optional)
+
+syntax:
+````
+function ws_server_read(&$connections,&$connection,$client_key,$data)
+````
+
 ### ws_server_text event handler (optional)
 
 syntax:
@@ -179,6 +200,13 @@ function ws_server_ping(&$connection,&$frame)
 syntax:
 ````
 function ws_server_shutdown(&$server,&$sockets,&$connections)
+````
+
+### ws_server_finalize event handler (optional)
+
+syntax:
+````
+function ws_server_finalize()
 ````
 
 ----------------------------------------------------------------------
