@@ -1,0 +1,14 @@
+visudo
+
+add following lines to allownon-root user to manage push server systemd service:
+
+myusername ALL=NOPASSWD: /bin/systemctl start push_server.service
+myusername ALL=NOPASSWD: /bin/systemctl stop push_server.service
+myusername ALL=NOPASSWD: /bin/systemctl restart push_server.service
+myusername ALL=NOPASSWD: /bin/systemctl status push_server.service
+myusername ALL=NOPASSWD: /bin/systemctl status -l push_server.service
+myusername ALL=NOPASSWD: /bin/systemctl is-active push_server.service
+
+example usage:
+$ sudo systemctl start push_server.service
+(must run with sudo, even though password is not required)
