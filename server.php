@@ -31,45 +31,12 @@ for ($i=0;$i<count($settings);$i++)
   define($key,$val);
 }
 
-/* example settings file (all keys required):
-WEBSOCKET_LISTENING_ADDRESS=localhost
-WEBSOCKET_LISTENING_PORT=50000
-WEBSOCKET_SELECT_TIMEOUT=200000
-WEBSOCKET_SERVER_HEADER=SimplePHPWS
-WEBSOCKET_XHR_PIPE_FILE=/var/include/vhosts/default/inc/data/ws_notify
-WEBSOCKET_EVENTS_INCLUDE_FILE=/var/include/vhosts/default/inc/push_server_events.php
-WEBSOCKET_LOG_PATH=/var/include/vhosts/default/inc/ws_logs/
-DB_HOST=localhost
-DB_SCHEMA=myapp
-DB_USER=www
-DB_PASSWORD=***
-*/
-
 if (file_exists(WEBSOCKET_EVENTS_INCLUDE_FILE)==False)
 {
   show_message("ERROR: EVENTS INCLUDE FILE NOT FOUND",True);
   return;
 }
 require_once(WEBSOCKET_EVENTS_INCLUDE_FILE); # contains functions to handle events for the specific application
-
-/*
-  mandatory event handlers:
-  function ws_server_authenticate(&$connection,&$frame) <-- return True for authenticated or False otherwise
-  optional event handlers:
-  function ws_server_initialize()
-  function ws_server_started(&$server,&$sockets,&$connections)
-  function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
-  function ws_server_loop(&$server,&$sockets,&$connections)
-  function ws_server_open(&$connection)
-  function ws_server_connect(&$connections,&$connection,$client_key)
-  function ws_server_before_close(&$connections,&$connection)
-  function ws_server_after_close(&$connections)
-  function ws_server_read(&$connections,&$connection,$client_key,$data)
-  function ws_server_text(&$connections,&$connection,$client_key,$client_id,$msg)
-  function ws_server_ping(&$connection,&$frame)
-  function ws_server_shutdown(&$server,&$sockets,&$connections)
-  function ws_server_finalize()
-*/
 
 set_error_handler("error_handler");
 
