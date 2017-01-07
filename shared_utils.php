@@ -13,7 +13,7 @@ function load_files($path,$root="") # path (and root) must have trailing delimit
   for ($i=0;$i<count($file_list);$i++)
   {
     $fn=$file_list[$i];
-    if (($fn==".") or ($fn==".."))
+    if (($fn==".") or ($fn=="..") or ($fn==".git"))
     {
       continue;
     }

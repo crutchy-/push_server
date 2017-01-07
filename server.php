@@ -122,7 +122,7 @@ while (True)
   $change_count=stream_select($read,$write,$except,0);
   if ($change_count===False)
   {
-    show_message("stream_select failed",True);
+    show_message("stream_select on sockets failed",True);
     break;
   }
   if ($change_count<1)
@@ -214,6 +214,13 @@ if (function_exists("ws_server_finalize")==True)
 }
 
 show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
+#####################################################################################################
+
+function shutdown()
+{
+
+}
 
 #####################################################################################################
 
