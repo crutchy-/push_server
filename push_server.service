@@ -3,7 +3,7 @@ Description=web socket server
 After=network-online.target mysql.service
 
 [Service]
-User=edr
+User=www-data
 Type=simple
 ExecStart=/usr/bin/php /var/include/vhosts/default/inc/push_server/server.php
 
