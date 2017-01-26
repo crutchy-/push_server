@@ -1,6 +1,6 @@
 visudo
 
-add following lines to allownon-root user to manage push server systemd service:
+add following lines to allow non-root user to manage push server systemd service:
 
 myusername ALL=NOPASSWD: /bin/systemctl start push_server.service
 myusername ALL=NOPASSWD: /bin/systemctl stop push_server.service

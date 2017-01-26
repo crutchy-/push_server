@@ -16,7 +16,7 @@ features/limitations:
 - uses procedural programming style
 - no framework cruft
 - event handlers for including application-specific code
-- named pipe for receiving data from webserver ajax requests
+- named pipe to receive data from other processes (eg ajax requests)
 
 ----------------------------------------------------------------------
 
