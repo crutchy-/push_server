@@ -125,6 +125,13 @@ syntax:
 function ws_server_authenticate(&$connection,&$frame)
 ````
 
+### ws_client_confirmed event handler (optional)
+
+syntax:
+````
+function ws_client_confirmed(&$connections,&$connection)
+````
+
 ### ws_server_initialize event handler (optional)
 
 syntax:

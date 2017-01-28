@@ -10,6 +10,15 @@ ini_set("memory_limit","512M");
 
 require_once("shared_utils.php");
 
+if (isset($argv[1])==True)
+{
+  if ($argv[1]=="test")
+  {
+    server_test();
+    return;
+  }
+}
+
 define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/server_shared.conf");
 if (file_exists(SETTINGS_FILENAME)==False)
 {
@@ -289,7 +298,7 @@ function on_msg($client_key,$data)
     $frame=decode_frame($data);
     if ($frame===False)
     {
-      # illegal frame
+      show_message("received illegal frame",True);
       close_client($client_key);
       return "";
     }
@@ -336,6 +345,10 @@ function on_msg($client_key,$data)
                   $params=array("operation"=>"client_id_confirmed","client_id"=>$connections[$client_key]["client_id"]);
                   $json=json_encode($params);
                   send_text($data["client_id"],$json);
+                  if (function_exists("ws_client_confirmed")==True)
+                  {
+                    ws_client_confirmed($connections,$connections[$client_key]);
+                  }
                 }
               }
               break;
@@ -599,6 +612,7 @@ function decode_frame(&$frame_data)
         $key=$i+$offset-1;
         if (isset($frame_data[$key])==False)
         {
+          show_message("decode_frame error: frame_data[key] not found: key=".$key);
           return False;
         }
         $frame_data[$key]=chr(ord($frame_data[$key])^$frame["mask_key"][$i%4]);
@@ -611,9 +625,29 @@ function decode_frame(&$frame_data)
       $frame["close_status"]=($status[1]<<8)+$status[2];
       $frame["payload"]=substr($frame["payload"],2);
     }
-    if (preg_match("//u",$frame["payload"])==0)
+    # received invalid utf8 frame (according to following preg_match) when sending a basic json-encoded string so there may be a sneaky bug somewhere in this function
+    # works (length=92): {"operation":"doc_record_lock","client_id":"clientid_588c81e742a3a","doc_id":"","foo":"bar"}
+    # works (length=80): {"operation":"doc_record_lock","client_id":"clientid_588c82769e6c9","doc_id":""}
+    # fails (length=85): {"operation":"doc_record_lock","client_id":"clientid_588c83b2c3d1d","doc_id":"32458"} <== string is decoded correctly but 91 chars of jibberish appears after (readable using ISO-8859-14 encoding with mousepad)
+    /*$valid_utf8=preg_match("//u",$frame["payload"]);
+    if (($valid_utf8===False) or ($valid_utf8==0))
     {
+      show_message("decode_frame error: invalid utf8 found in payload");
+      show_message($frame["payload"]);
       return False;
+    }*/
+    # workaround for now is to loop through payload and truncate before first invalid ascii character, which seems to work for the failing data above (using ord function doesn't work)
+    $valid=" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~…‘’“”•–—™¢€£§©«®°±²³´µ¶·¹»¼½¾";
+    for ($i=0;$i<strlen($frame["payload"]);$i++)
+    {
+      $c=$frame["payload"][$i];
+      if (strpos($valid,$c)!==False)
+      {
+        continue;
+      }
+      $frame["payload"]=substr($frame["payload"],0,$i);
+      show_message("decode_frame warning: payload truncated");
+      break;
     }
   }
   return $frame;
@@ -660,6 +694,32 @@ function var_dump_to_str($var)
   ob_start();
   var_dump($var);
   return ob_get_clean();
+}
+
+#####################################################################################################
+
+function server_test()
+{
+  # use as required (mainly for testing of encoding and decoding frames)
+  $payload='{"operation":"doc_record_lock","client_id":"clientid_588c83b2c3d1d","doc_id":"32458"}';
+  $frame=encode_text_data_frame($payload); # << need browser-encoded frame (with mask)
+  if (decode_frame($frame)==True)
+  {
+    echo "decode_frame success".PHP_EOL;
+  }
+  else
+  {
+    echo "decode_frame fail".PHP_EOL;
+  }
+  var_dump($frame);
+  /*if ($frame["payload"]==$payload)
+  {
+    echo "payload matches".PHP_EOL;
+  }
+  else
+  {
+    echo "payload mismatch".PHP_EOL.$frame["payload"].PHP_EOL;
+  }*/
 }
 
 #####################################################################################################
