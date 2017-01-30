@@ -116,4 +116,22 @@ function get_header($lines,$header)
 
 #####################################################################################################
 
+function format_mysql_timestamp_to_utc($mysql_timestamp,$from_timezone,$format)
+{
+  $dt=new DateTime($mysql_timestamp,new DateTimeZone($from_timezone));
+  $dt->setTimeZone(new DateTimeZone("UTC"));
+  return $dt->format($format);
+}
+
+#####################################################################################################
+
+function format_mysql_timestamp_from_utc($mysql_timestamp,$to_timezone,$format)
+{
+  $dt=new DateTime($mysql_timestamp,new DateTimeZone("UTC"));
+  $dt->setTimeZone(new DateTimeZone($to_timezone));
+  return $dt->format($format);
+}
+
+#####################################################################################################
+
 ?>
