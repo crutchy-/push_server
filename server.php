@@ -287,7 +287,10 @@ function on_msg($client_key,$data)
       ws_server_open($connections[$client_key]);
     }
     $connections[$client_key]["client_id"]=uniqid("clientid_");
-    $params=array("operation"=>"confirm_client_id","client_id"=>$connections[$client_key]["client_id"]);
+    $params=array();
+    $params["operation"]="confirm_client_id";
+    $params["client_id"]=$connections[$client_key]["client_id"];
+    $params["result"]="OK";
     $json=json_encode($params);
     $frame=encode_text_data_frame($json);
     show_message(var_dump_to_str($json));
@@ -342,7 +345,10 @@ function on_msg($client_key,$data)
                 {
                   $connections[$client_key]["client_id_confirmed"]=True;
                   show_message(var_dump_to_str($connections[$client_key]));
-                  $params=array("operation"=>"client_id_confirmed","client_id"=>$connections[$client_key]["client_id"]);
+                  $params=array();
+                  $params["operation"]="client_id_confirmed";
+                  $params["client_id"]=$connections[$client_key]["client_id"];
+                  $params["result"]="OK";
                   $json=json_encode($params);
                   send_text($data["client_id"],$json);
                   if (function_exists("ws_client_confirmed")==True)
@@ -384,7 +390,7 @@ function on_msg($client_key,$data)
         close_client($client_key);
         return "";
     }
-    if (($msg<>"") and (function_exists("ws_server_text")==True))
+    if (($msg<>"") and (function_exists("ws_server_text")==True) and (isset($connections[$client_key]["client_id_confirmed"])==True))
     {
       ws_server_text($connections,$connections[$client_key],$client_key,$connections[$client_key]["client_id"],$msg);
     }
