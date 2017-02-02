@@ -201,7 +201,7 @@ while (True)
   }
   else
   {
-    foreach ($connections as $client_key => $connection)
+    /*foreach ($connections as $client_key => $connection)
     {
       if ($connections[$client_key]["state"]<>"OPEN")
       {
@@ -232,7 +232,7 @@ while (True)
         $ping_frame=encode_frame(9);
         do_reply($client_key,$ping_frame);
       }
-    }
+    }*/
   }
 }
 if (function_exists("ws_server_shutdown")==True)
