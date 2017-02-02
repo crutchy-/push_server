@@ -134,67 +134,103 @@ while (True)
     show_message("stream_select on sockets failed",True);
     break;
   }
-  if ($change_count<1)
+  if ($change_count>=1)
   {
-    continue;
-  }
-  foreach ($read as $read_key => $read_socket)
-  {
-    if ($read[$read_key]===$server)
+    foreach ($read as $read_key => $read_socket)
     {
-      $client=stream_socket_accept($server,120);
-      if (($client===False) or ($client==Null))
+      if ($read[$read_key]===$server)
       {
-        show_message("stream_socket_accept error/timeout",True);
-        continue;
+        $client=stream_socket_accept($server,120);
+        if (($client===False) or ($client==Null))
+        {
+          show_message("stream_socket_accept error/timeout",True);
+          continue;
+        }
+        stream_set_blocking($client,0);
+        $sockets[]=$client;
+        $client_key=array_search($client,$sockets,True);
+        $new_connection=array();
+        $new_connection["peer_name"]=stream_socket_get_name($client,True);
+        $new_connection["client_id"]="";
+        $new_connection["client_id_confirmed"]=False;
+        $new_connection["state"]="CONNECTING";
+        $new_connection["ping_time"]=False;
+        $new_connection["pong_time"]=False;
+        $connections[$client_key]=$new_connection;
+        show_message("client connected");
+        if (function_exists("ws_server_connect")==True)
+        {
+          ws_server_connect($connections,$connections[$client_key],$client_key);
+        }
       }
-      stream_set_blocking($client,0);
-      $sockets[]=$client;
-      $client_key=array_search($client,$sockets,True);
-      $new_connection=array();
-      $new_connection["peer_name"]=stream_socket_get_name($client,True);
-      $new_connection["client_id"]="";
-      $new_connection["client_id_confirmed"]=False;
-      $new_connection["state"]="CONNECTING";
-      $connections[$client_key]=$new_connection;
-      show_message("client connected");
-      if (function_exists("ws_server_connect")==True)
+      else
       {
-        ws_server_connect($connections,$connections[$client_key],$client_key);
+        $client_key=array_search($read[$read_key],$sockets,True);
+        $data="";
+        do
+        {
+          $buffer=fread($sockets[$client_key],8);
+          if (strlen($buffer)===False)
+          {
+            show_message("read error",True);
+            close_client($client_key);
+            continue 2;
+          }
+          $data.=$buffer;
+        }
+        while (strlen($buffer)>0);
+        if (strlen($data)==0)
+        {
+          show_message("client terminated connection",True);
+          close_client($client_key);
+          continue;
+        }
+        if (on_msg($client_key,$data)=="quit") # NOTE: NOT PART OF WEBSOCKET PROTOCOL
+        {
+          foreach ($sockets as $key => $socket)
+          {
+            if ($sockets[$key]!==$server)
+            {
+              close_client($key,1001,"server shutting down");
+            }
+          }
+          break 2;
+        }
       }
     }
-    else
+  }
+  else
+  {
+    foreach ($connections as $client_key => $connection)
     {
-      $client_key=array_search($read[$read_key],$sockets,True);
-      $data="";
-      do
+      if ($connections[$client_key]["state"]<>"OPEN")
       {
-        $buffer=fread($sockets[$client_key],8);
-        if (strlen($buffer)===False)
-        {
-          show_message("read error",True);
-          close_client($client_key);
-          continue 2;
-        }
-        $data.=$buffer;
-      }
-      while (strlen($buffer)>0);
-      if (strlen($data)==0)
-      {
-        show_message("client terminated connection",True);
-        close_client($client_key);
         continue;
       }
-      if (on_msg($client_key,$data)=="quit") # NOTE: NOT PART OF WEBSOCKET PROTOCOL
+      if (($connections[$client_key]["ping_time"]!==False) and ($connections[$client_key]["pong_time"]!==False))
       {
-        foreach ($sockets as $key => $socket)
+        $delta=$connections[$client_key]["pong_time"]-$connections[$client_key]["ping_time"];
+        if ($delta>WEBSOCKET_CONNECTION_TIMEOUT_SEC)
         {
-          if ($sockets[$key]!==$server)
+          show_message("client latency is ".$delta." sec, which exceeds limit - closing connection",True);
+          close_client($client_key);
+          continue;
+        }
+        else
+        {
+          $delta=microtime(True)-$connections[$client_key]["ping_time"];
+          if ($delta>1)
           {
-            close_client($key,1001,"server shutting down");
+            $connections[$client_key]["pong_time"]=False;
+            $connections[$client_key]["ping_time"]=False;
           }
         }
-        break 2;
+      }
+      else
+      {
+        $connections[$client_key]["ping_time"]=microtime(True);
+        $ping_frame=encode_frame(9);
+        do_reply($client_key,$ping_frame);
       }
     }
   }
@@ -383,7 +419,14 @@ function on_msg($client_key,$data)
         }
         return "";
       case 10: # pong
-        show_message("received unsolicited pong frame",True);
+        if ($connections[$client_key]["ping_time"]!==False)
+        {
+          $connections[$client_key]["pong_time"]=microtime(True);
+        }
+        else
+        {
+          show_message("received unsolicited pong from client",True);
+        }
         return "";
       default:
         show_message("received frame with unsupported opcode - terminating connection",True);
