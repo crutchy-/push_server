@@ -201,7 +201,7 @@ while (True)
   }
   else
   {
-    /*foreach ($connections as $client_key => $connection)
+    foreach ($connections as $client_key => $connection)
     {
       if ($connections[$client_key]["state"]<>"OPEN")
       {
@@ -219,7 +219,7 @@ while (True)
         else
         {
           $delta=microtime(True)-$connections[$client_key]["ping_time"];
-          if ($delta>1)
+          if ($delta>WEBSOCKET_CONNECTION_TIMEOUT_SEC)
           {
             $connections[$client_key]["pong_time"]=False;
             $connections[$client_key]["ping_time"]=False;
@@ -231,8 +231,9 @@ while (True)
         $connections[$client_key]["ping_time"]=microtime(True);
         $ping_frame=encode_frame(9);
         do_reply($client_key,$ping_frame);
+        show_message("pinging client ".$client_key,True);
       }
-    }*/
+    }
   }
 }
 if (function_exists("ws_server_shutdown")==True)
@@ -422,6 +423,7 @@ function on_msg($client_key,$data)
         if ($connections[$client_key]["ping_time"]!==False)
         {
           $connections[$client_key]["pong_time"]=microtime(True);
+          show_message("received pong from client ".$client_key,True);
         }
         else
         {
