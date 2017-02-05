@@ -201,7 +201,8 @@ while (True)
   }
   else
   {
-    foreach ($connections as $client_key => $connection)
+    # TODO/DEBUG: this keepalive bit causes problems and doesn't seem to be needed anyway (might be worth looking into more later)
+    /*foreach ($connections as $client_key => $connection)
     {
       if ($connections[$client_key]["state"]<>"OPEN")
       {
@@ -233,7 +234,7 @@ while (True)
         do_reply($client_key,$ping_frame);
         show_message("pinging client ".$client_key,True);
       }
-    }
+    }*/
   }
 }
 if (function_exists("ws_server_shutdown")==True)
