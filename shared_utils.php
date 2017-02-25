@@ -2,7 +2,7 @@
 
 #####################################################################################################
 
-function load_files($path,$root="") # path (and root) must have trailing delimiter
+function load_files($path,$root="",$ext="",$trim_ext=True) # path (and root) must have trailing delimiter, ext excludes dot, empty ext means all
 {
   if ($root=="")
   {
@@ -24,11 +24,23 @@ function load_files($path,$root="") # path (and root) must have trailing delimit
     }
     if (is_dir($full)==False)
     {
+      $fext=pathinfo($fn,PATHINFO_EXTENSION);
+      if ($ext<>"")
+      {
+        if ($fext<>$ext)
+        {
+          continue;
+        }
+      }
+      if ($trim_ext==True)
+      {
+        $fn=substr($fn,0,strlen($fn)-strlen($fext)-1);
+      }
       $result[$fn]=trim(file_get_contents($full));
     }
     else
     {
-      $result=$result+load_files($full."/",$root);
+      $result=$result+load_files($full."/",$root,$ext,$trim_ext);
     }
   }
   return $result;
@@ -123,5 +135,3 @@ function mysql_to_iso_timestamp($ts)
 }
 
 #####################################################################################################
-
-?>
