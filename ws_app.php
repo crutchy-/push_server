@@ -3,11 +3,12 @@
 # this file is included by a webserver ajax stub handler script to write to the named pipe, which will then be read by the websocket server
 # this script is not included by the websocket server itself
 
+define("XHR_PIPE_FILE","/var/include/vhosts/default/inc/data/ws_notify");
+
 #####################################################################################################
 
 function ws_pipe_data(&$params)
 {
-  define("XHR_PIPE_FILE","/var/include/vhosts/default/inc/data/ws_notify");
   if (file_exists(XHR_PIPE_FILE)==False)
   {
     $params["pipe_status"]="PIPE FILE NOT FOUND";
@@ -36,5 +37,3 @@ function ws_pipe_data(&$params)
 }
 
 #####################################################################################################
-
-?>
