@@ -95,11 +95,11 @@ while (True)
       $data="";
       do
       {
-        $buffer=fread($xhr_pipe,1024);
-        if (strlen($buffer)===False)
+        $buffer=fread($xhr_pipe,80);
+        if ($buffer===False)
         {
           show_message("xhr pipe read error",True);
-          continue 2;
+          break;
         }
         $data.=$buffer;
       }
@@ -182,7 +182,7 @@ while (True)
         do
         {
           $buffer=fread($sockets[$client_key],8);
-          if (strlen($buffer)===False)
+          if ($buffer===False)
           {
             show_message("socket read error",True);
             close_client($client_key);
