@@ -92,7 +92,19 @@ while (True)
   {
     if ($change_count>=1)
     {
-      $data=trim(fgets($xhr_pipe));
+      $data="";
+      do
+      {
+        $buffer=fread($xhr_pipe,1024);
+        if (strlen($buffer)===False)
+        {
+          show_message("xhr pipe read error",True);
+          continue 2;
+        }
+        $data.=$buffer;
+      }
+      while (strlen($buffer)>0);
+      $data=trim($data);
       if (function_exists("ws_server_fifo")==True)
       {
         ws_server_fifo($server,$sockets,$connections,$data);
@@ -172,7 +184,7 @@ while (True)
           $buffer=fread($sockets[$client_key],8);
           if (strlen($buffer)===False)
           {
-            show_message("read error",True);
+            show_message("socket read error",True);
             close_client($client_key);
             continue 2;
           }
