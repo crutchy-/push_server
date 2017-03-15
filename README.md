@@ -5,7 +5,7 @@ simple php websockets server
 ----------------------------------------------------------------------
 
 features/limitations:
-- one file (server.php)
+- two file (server.php and shared_utils.php)
 - supports RFC6455 (version 13) only
 - supports text data frames (doesn't support binary data frames)
 - supports close, ping (receive only) and pong (send only) control frames
