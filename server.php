@@ -290,7 +290,7 @@ function on_msg($client_key,$data)
     do_reply($client_key,$msg);
     if (function_exists("ws_server_open")==True)
     {
-      ws_server_open($connections[$client_key]);
+      ws_server_open($connections,$connections[$client_key],$client_key);
     }
   }
   elseif ($connections[$client_key]["state"]=="OPEN")

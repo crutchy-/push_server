@@ -119,13 +119,6 @@ syntax:
 function ws_server_authenticate(&$connection,$cookies)
 ````
 
-### ws_client_confirmed event handler (optional)
-
-syntax:
-````
-function ws_client_confirmed(&$connections,&$connection)
-````
-
 ### ws_server_initialize event handler (optional)
 
 syntax:
@@ -158,7 +151,7 @@ function ws_server_loop(&$server,&$sockets,&$connections)
 
 syntax:
 ````
-function ws_server_open(&$connection)
+function ws_server_open(&$connections,&$connection,$client_key)
 ````
 
 ### ws_server_before_close event handler (optional)
