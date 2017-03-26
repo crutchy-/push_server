@@ -10,15 +10,6 @@ ini_set("memory_limit","512M");
 
 require_once("shared_utils.php");
 
-if (isset($argv[1])==True)
-{
-  if ($argv[1]=="test")
-  {
-    server_test();
-    return;
-  }
-}
-
 define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/server_shared.conf");
 if (file_exists(SETTINGS_FILENAME)==False)
 {
@@ -163,11 +154,7 @@ while (True)
         $client_key=array_search($client,$sockets,True);
         $new_connection=array();
         $new_connection["peer_name"]=stream_socket_get_name($client,True);
-        $new_connection["client_id"]="";
-        $new_connection["client_id_confirmed"]=False;
         $new_connection["state"]="CONNECTING";
-        $new_connection["ping_time"]=False;
-        $new_connection["pong_time"]=False;
         $connections[$client_key]=$new_connection;
         show_message("client connected");
         if (function_exists("ws_server_connect")==True)
@@ -197,7 +184,7 @@ while (True)
           close_client($client_key);
           continue;
         }
-        if (on_msg($client_key,$data)=="quit") # NOTE: NOT PART OF WEBSOCKET PROTOCOL
+        if (on_msg($client_key,$data)=="quit")
         {
           foreach ($sockets as $key => $socket)
           {
@@ -210,43 +197,6 @@ while (True)
         }
       }
     }
-  }
-  else
-  {
-    # TODO/DEBUG: this keepalive bit causes problems and doesn't seem to be needed anyway (might be worth looking into more later)
-    /*foreach ($connections as $client_key => $connection)
-    {
-      if ($connections[$client_key]["state"]<>"OPEN")
-      {
-        continue;
-      }
-      if (($connections[$client_key]["ping_time"]!==False) and ($connections[$client_key]["pong_time"]!==False))
-      {
-        $delta=$connections[$client_key]["pong_time"]-$connections[$client_key]["ping_time"];
-        if ($delta>WEBSOCKET_CONNECTION_TIMEOUT_SEC)
-        {
-          show_message("client latency is ".$delta." sec, which exceeds limit - closing connection",True);
-          close_client($client_key);
-          continue;
-        }
-        else
-        {
-          $delta=microtime(True)-$connections[$client_key]["ping_time"];
-          if ($delta>WEBSOCKET_CONNECTION_TIMEOUT_SEC)
-          {
-            $connections[$client_key]["pong_time"]=False;
-            $connections[$client_key]["ping_time"]=False;
-          }
-        }
-      }
-      else
-      {
-        $connections[$client_key]["ping_time"]=microtime(True);
-        $ping_frame=encode_frame(9);
-        do_reply($client_key,$ping_frame);
-        show_message("pinging client ".$client_key,True);
-      }
-    }*/
   }
 }
 if (function_exists("ws_server_shutdown")==True)
@@ -273,13 +223,6 @@ if (function_exists("ws_server_finalize")==True)
 }
 
 show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-
-#####################################################################################################
-
-function shutdown()
-{
-
-}
 
 #####################################################################################################
 
@@ -315,12 +258,25 @@ function on_msg($client_key,$data)
   }
   if ($connections[$client_key]["state"]=="CONNECTING")
   {
-    # TODO: CHECK "Host" HEADER (COMPARE TO CONFIG SETTING)
-    # TODO: CHECK "Origin" HEADER (COMPARE TO CONFIG SETTING)
+    # TODO: CHECK "Host" HEADER (COMPARE TO SERVER CONFIG SETTING)
+    # TODO: CHECK "Origin" HEADER (COMPARE TO SERVER CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
     show_message("from client (connecting):",True);
     show_message(var_dump_to_str($data));
     $headers=extract_headers($data);
+    $cookies=get_header($headers,"Cookie");
+    if ($cookies===False)
+    {
+      show_message("login cookie not found",True);
+      close_client($client_key);
+      return "";
+    }
+    if (ws_server_authenticate($connections[$client_key],$cookies)==False)
+    {
+      show_message("authentication error",True);
+      close_client($client_key);
+      return "";
+    }
     $sec_websocket_key=get_header($headers,"Sec-WebSocket-Key");
     $sec_websocket_accept=base64_encode(sha1($sec_websocket_key."258EAFA5-E914-47DA-95CA-C5AB0DC85B11",True));
     $msg="HTTP/1.1 101 Switching Protocols".PHP_EOL;
@@ -336,15 +292,6 @@ function on_msg($client_key,$data)
     {
       ws_server_open($connections[$client_key]);
     }
-    $connections[$client_key]["client_id"]=uniqid("clientid_");
-    $params=array();
-    $params["operation"]="confirm_client_id";
-    $params["client_id"]=$connections[$client_key]["client_id"];
-    $params["result"]="OK";
-    $json=json_encode($params);
-    $frame=encode_text_data_frame($json);
-    show_message(var_dump_to_str($json));
-    do_reply($client_key,$frame);
   }
   elseif ($connections[$client_key]["state"]=="OPEN")
   {
@@ -383,33 +330,6 @@ function on_msg($client_key,$data)
         show_message(var_dump_to_str($frame));
         $connections[$client_key]["buffer"]=array();
         $msg=$frame["payload"];
-        $data=json_decode($msg,True);
-        if ((isset($data["operation"])==True) and (isset($data["client_id"])==True))
-        {
-          switch ($data["operation"])
-          {
-            case "confirm_client_id":
-              if ($data["client_id"]===$connections[$client_key]["client_id"])
-              {
-                if (ws_server_authenticate($connections[$client_key],$frame)==True)
-                {
-                  $connections[$client_key]["client_id_confirmed"]=True;
-                  show_message(var_dump_to_str($connections[$client_key]));
-                  $params=array();
-                  $params["operation"]="client_id_confirmed";
-                  $params["client_id"]=$connections[$client_key]["client_id"];
-                  $params["result"]="OK";
-                  $json=json_encode($params);
-                  send_text($data["client_id"],$json);
-                  if (function_exists("ws_client_confirmed")==True)
-                  {
-                    ws_client_confirmed($connections,$connections[$client_key]);
-                  }
-                }
-              }
-              break;
-          }
-        }
         break;
       case 8: # connection close
         if (isset($frame["close_status"])==True)
@@ -419,38 +339,24 @@ function on_msg($client_key,$data)
         }
         else
         {
-          show_message("received close frame - invalid/missing status code ",True);
+          show_message("received close frame - invalid/missing status code",True);
           close_client($client_key);
         }
         return "";
       case 9: # ping
-        show_message("received ping frame",True);
         $reply_frame=encode_frame(10,$frame["payload"]);
         do_reply($client_key,$reply_frame);
-        if (function_exists("ws_server_ping")==True)
-        {
-          ws_server_ping($connections[$client_key],$frame);
-        }
         return "";
       case 10: # pong
-        if ($connections[$client_key]["ping_time"]!==False)
-        {
-          $connections[$client_key]["pong_time"]=microtime(True);
-          show_message("received pong from client ".$client_key,True);
-        }
-        else
-        {
-          show_message("received unsolicited pong from client",True);
-        }
         return "";
       default:
         show_message("received frame with unsupported opcode - terminating connection",True);
         close_client($client_key);
         return "";
     }
-    if (($msg<>"") and (function_exists("ws_server_text")==True) and (isset($connections[$client_key]["client_id_confirmed"])==True))
+    if (($msg<>"") and (function_exists("ws_server_text")==True))
     {
-      ws_server_text($connections,$connections[$client_key],$client_key,$connections[$client_key]["client_id"],$msg);
+      ws_server_text($connections,$connections[$client_key],$client_key,$msg);
     }
   }
   return "";
@@ -493,9 +399,9 @@ function broadcast_to_all($msg)
   global $connections;
   foreach ($connections as $key => $conn)
   {
-    if ($conn["client_id_confirmed"]==True)
+    if ($conn["state"]=="OPEN")
     {
-      show_message("sending to client id \"".$conn["client_id"]."\":",True);
+      show_message("sending to client key ".$key.":",True);
       show_message(var_dump_to_str($msg));
       $frame=encode_text_data_frame($msg);
       do_reply($key,$frame);
@@ -505,67 +411,10 @@ function broadcast_to_all($msg)
 
 #####################################################################################################
 
-function validate_client_id($client_id)
+function send_text($client_key,$msg)
 {
   global $connections;
-  foreach ($connections as $key => $conn)
-  {
-    if (($conn["client_id"]==$client_id) and ($conn["client_id_confirmed"]==True))
-    {
-      return True;
-    }
-  }
-  return False;
-}
-
-#####################################################################################################
-
-function broadcast_to_others($client_id,$msg)
-{
-  global $connections;
-  if (validate_client_id($client_id)==False)
-  {
-    show_message("SEND TEXT ERROR: INVALID CLIENT ID",True);
-    return False;
-  }
-  foreach ($connections as $key => $conn)
-  {
-    if (($conn["client_id"]!==$client_id) and ($conn["client_id_confirmed"]==True))
-    {
-      show_message("sending to client id \"$client_id\":",True);
-      show_message(var_dump_to_str($msg));
-      $frame=encode_text_data_frame($msg);
-      do_reply($key,$frame);
-    }
-  }
-  return True;
-}
-
-#####################################################################################################
-
-function send_text($client_id,$msg)
-{
-  global $connections;
-  if ($client_id=="")
-  {
-    show_message("SEND TEXT ERROR: INVALID CLIENT ID",True);
-    return False;
-  }
-  $client_key=False;
-  foreach ($connections as $key => $conn)
-  {
-    if (($conn["client_id"]===$client_id) and ($conn["client_id_confirmed"]==True))
-    {
-      $client_key=$key;
-      break;
-    }
-  }
-  if ($client_key===False)
-  {
-    show_message("SEND TEXT ERROR: REMOTE NOT FOUND",True);
-    return False;
-  }
-  show_message("sending to client id \"$client_id\":",True);
+  show_message("sending to client key ".$client_key.":",True);
   show_message(var_dump_to_str($msg));
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
@@ -700,7 +549,7 @@ function decode_frame(&$frame_data)
       show_message($frame["payload"]);
       return False;
     }*/
-    # workaround for now is to loop through payload and truncate before first invalid ascii character, which seems to work for the failing data above (using ord function doesn't work)
+    # workaround for now is to loop through payload and truncate before first invalid ascii character, which seems to work for the failing data (using ord function doesn't work)
     $valid=" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~…‘’“”•–—™¢€£§©«®°±²³´µ¶·¹»¼½¾";
     for ($i=0;$i<strlen($frame["payload"]);$i++)
     {
@@ -758,32 +607,6 @@ function var_dump_to_str($var)
   ob_start();
   var_dump($var);
   return ob_get_clean();
-}
-
-#####################################################################################################
-
-function server_test()
-{
-  # use as required (mainly for testing of encoding and decoding frames)
-  $payload='{"operation":"doc_record_lock","client_id":"clientid_588c83b2c3d1d","doc_id":"32458"}';
-  $frame=encode_text_data_frame($payload); # << need browser-encoded frame (with mask)
-  if (decode_frame($frame)==True)
-  {
-    echo "decode_frame success".PHP_EOL;
-  }
-  else
-  {
-    echo "decode_frame fail".PHP_EOL;
-  }
-  var_dump($frame);
-  /*if ($frame["payload"]==$payload)
-  {
-    echo "payload matches".PHP_EOL;
-  }
-  else
-  {
-    echo "payload mismatch".PHP_EOL.$frame["payload"].PHP_EOL;
-  }*/
 }
 
 #####################################################################################################
