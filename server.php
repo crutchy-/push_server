@@ -239,7 +239,7 @@ function error_handler($errno,$errstr,$errfile,$errline)
     }
   }
   echo "*** $errstr in $errfile on line $errline".PHP_EOL;
-  die; # FOR TEST/DEBUG
+  #die; # FOR TEST/DEBUG
 }
 
 #####################################################################################################
