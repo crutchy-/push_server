@@ -2,6 +2,8 @@
 
 #####################################################################################################
 
+return; # disabled
+
 error_reporting(E_ALL);
 set_time_limit(0);
 ob_implicit_flush();
@@ -561,11 +563,11 @@ function decode_frame(&$frame_data)
 
 #####################################################################################################
 
-function do_reply($client_key,$msg)
+function do_reply($client_key,$msg) # $msg is an encoded websocket frame
 {
   global $sockets;
   $total_sent=0;
-  show_message("attempting to write to client socket $client_key: \"".$msg."\"",True);
+  show_message("attempting to write to client socket $client_key: \"".$msg."\"",True); # todo: decode frame or trim header
   while ($total_sent<strlen($msg))
   {
     $buf=substr($msg,$total_sent);
