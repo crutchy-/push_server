@@ -8,6 +8,11 @@ ob_implicit_flush();
 date_default_timezone_set("UTC");
 ini_set("memory_limit","512M");
 
+register_shutdown_function("shutdown_handler");
+pcntl_signal(SIGTERM,"signal_handler"); # required for shutdown handler to be called on systemctl stop
+
+set_error_handler("error_handler");
+
 require_once("shared_utils.php");
 
 define("SETTINGS_FILENAME","/var/include/vhosts/default/inc/data/server_shared.conf");
@@ -37,8 +42,6 @@ if (file_exists(WEBSOCKET_EVENTS_INCLUDE_FILE)==False)
   return;
 }
 require_once(WEBSOCKET_EVENTS_INCLUDE_FILE); # contains functions to handle events for the specific application
-
-set_error_handler("error_handler");
 
 if (function_exists("ws_server_initialize")==True)
 {
@@ -171,7 +174,7 @@ while (True)
           $buffer=fread($sockets[$client_key],1024);
           if ($buffer===False)
           {
-            show_message("socket read error",True);
+            show_message("socket socket $client_key read error",True);
             close_client($client_key);
             continue 2;
           }
@@ -180,7 +183,7 @@ while (True)
         while (strlen($buffer)>0);
         if (strlen($data)==0)
         {
-          show_message("client terminated connection",True);
+          show_message("client socket $client_key terminated connection",True);
           close_client($client_key);
           continue;
         }
@@ -228,18 +231,8 @@ show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>
 
 function error_handler($errno,$errstr,$errfile,$errline)
 {
-  $continue_errors=array(
-    "failed with errno=32 Broken pipe",
-    "failed with errno=104 Connection reset by peer");
-  for ($i=0;$i<count($continue_errors);$i++)
-  {
-    if (strpos($errstr,$continue_errors[$i])!==False)
-    {
-      return True;
-    }
-  }
-  echo "*** $errstr in $errfile on line $errline".PHP_EOL;
-  #die; # FOR TEST/DEBUG
+  show_message("ERROR HANDLER >>> $errstr in $errfile on line $errline");
+  die;
 }
 
 #####################################################################################################
@@ -261,13 +254,13 @@ function on_msg($client_key,$data)
     # TODO: CHECK "Host" HEADER (COMPARE TO SERVER CONFIG SETTING)
     # TODO: CHECK "Origin" HEADER (COMPARE TO SERVER CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
-    show_message("from client (connecting):",True);
+    show_message("from client socket $client_key (connecting):",True);
     show_message(var_dump_to_str($data));
     $headers=extract_headers($data);
     $cookies=get_header($headers,"Cookie");
     if ($cookies===False)
     {
-      show_message("login cookie not found",True);
+      show_message("client socket $client_key login cookie not found",True);
       close_client($client_key);
       return "";
     }
@@ -284,7 +277,7 @@ function on_msg($client_key,$data)
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
     $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
-    show_message("to client (open):",True);
+    show_message("to client socket $client_key (open):",True);
     $connections[$client_key]["state"]="OPEN";
     $connections[$client_key]["buffer"]=array();
     do_reply($client_key,$msg);
@@ -298,7 +291,7 @@ function on_msg($client_key,$data)
     $frame=decode_frame($data);
     if ($frame===False)
     {
-      show_message("received illegal frame",True);
+      show_message("received illegal frame from client socket $client_key",True);
       close_client($client_key);
       return "";
     }
@@ -306,7 +299,7 @@ function on_msg($client_key,$data)
     switch ($frame["opcode"])
     {
       case 0: # continuation frame
-        show_message("received continuation frame",True);
+        show_message("received continuation frame from client socket $client_key",True);
         $connections[$client_key]["buffer"][]=$frame;
         if ($frame["fin"]==True)
         {
@@ -321,7 +314,7 @@ function on_msg($client_key,$data)
       case 1: # text frame
         if ($frame["fin"]==True)
         {
-          show_message("received text frame from client socket",True);
+          show_message("received text frame from client socket $client_key",True);
         }
         else
         {
@@ -339,7 +332,7 @@ function on_msg($client_key,$data)
         }
         else
         {
-          show_message("received close frame - invalid/missing status code",True);
+          show_message("received close frame from client socket $client_key - invalid/missing status code",True);
           close_client($client_key);
         }
         return "";
@@ -350,7 +343,7 @@ function on_msg($client_key,$data)
       case 10: # pong
         return "";
       default:
-        show_message("received frame with unsupported opcode - terminating connection",True);
+        show_message("received frame with unsupported opcode from client socket $client_key - terminating connection",True);
         close_client($client_key);
         return "";
     }
@@ -374,13 +367,13 @@ function close_client($client_key,$status_code=False,$reason="")
   }
   if ($status_code!==False)
   {
-    show_message("closing client connection (cleanly)",True);
+    show_message("closing client socket $client_key connection (cleanly)",True);
     $reply_frame=encode_frame(8,$reason,$status_code);
     do_reply($client_key,$reply_frame);
   }
   else
   {
-    show_message("closing client connection (uncleanly)",True);
+    show_message("closing client socket $client_key connection (uncleanly)",True);
   }
   stream_socket_shutdown($sockets[$client_key],STREAM_SHUT_RDWR);
   fclose($sockets[$client_key]);
@@ -401,7 +394,7 @@ function broadcast_to_all($msg)
   {
     if ($conn["state"]=="OPEN")
     {
-      show_message("sending to client key ".$key.":",True);
+      show_message("sending to client socket ".$key.":",True);
       show_message(var_dump_to_str($msg));
       $frame=encode_text_data_frame($msg);
       do_reply($key,$frame);
@@ -414,7 +407,7 @@ function broadcast_to_all($msg)
 function send_text($client_key,$msg)
 {
   global $connections;
-  show_message("sending to client key ".$client_key.":",True);
+  show_message("sending to client socket ".$client_key.":",True);
   show_message(var_dump_to_str($msg));
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
@@ -568,17 +561,18 @@ function decode_frame(&$frame_data)
 
 #####################################################################################################
 
-function do_reply($client_key,&$msg)
+function do_reply($client_key,$msg)
 {
   global $sockets;
   $total_sent=0;
+  show_message("attempting to write to client socket $client_key: \"".$msg."\"",True);
   while ($total_sent<strlen($msg))
   {
     $buf=substr($msg,$total_sent);
     $written=fwrite($sockets[$client_key],$buf,min(strlen($buf),8192));
     if (($written===False) or ($written<=0))
     {
-      show_message("error writing to client socket",True);
+      show_message("error writing to client socket $client_key",True);
       close_client($client_key);
       return;
     }
@@ -607,6 +601,31 @@ function var_dump_to_str($var)
   ob_start();
   var_dump($var);
   return ob_get_clean();
+}
+
+#####################################################################################################
+
+function shutdown_handler()
+{
+  $status=shell_exec("sudo systemctl status push_server.service");
+  $stopmsg="Active: deactivating (stop-sigterm)";
+  if (strpos($status,$stopmsg)!==False)
+  {
+    show_message("<<< SYSTEMCTL STOP COMMAND DETECTED - TERMINATING >>>");
+    die;
+  }
+  #show_message("EMAILING SYSTEM ADMINISTRATOR");
+  #send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER RESTART","");
+  show_message("<<< RESTARTING SERVER >>>");
+  shell_exec("sudo systemctl restart push_server.service");
+  die;
+}
+
+#####################################################################################################
+
+function signal_handler($signo)
+{
+  # required for shutdown handler to be called on systemctl stop
 }
 
 #####################################################################################################
