@@ -2,8 +2,6 @@
 
 #####################################################################################################
 
-return; # disabled
-
 error_reporting(E_ALL);
 set_time_limit(0);
 ob_implicit_flush();
@@ -185,6 +183,7 @@ while (True)
         while (strlen($buffer)>0);
         if (strlen($data)==0)
         {
+          $connections[$client_key]["state"]="REMOTE TERMINATED";
           show_message("client socket $client_key terminated connection",True);
           close_client($client_key);
           continue;
@@ -279,7 +278,7 @@ function on_msg($client_key,$data)
     $msg.="Upgrade: websocket".PHP_EOL;
     $msg.="Connection: Upgrade".PHP_EOL;
     $msg.="Sec-WebSocket-Accept: ".$sec_websocket_accept."\r\n\r\n";
-    show_message("to client socket $client_key (open):",True);
+    show_message("client socket $client_key state set to OPEN",True);
     $connections[$client_key]["state"]="OPEN";
     $connections[$client_key]["buffer"]=array();
     do_reply($client_key,$msg);
@@ -309,22 +308,19 @@ function on_msg($client_key,$data)
           $connections[$client_key]["buffer"]=array();
           break;
         }
-        else
-        {
-          return "";
-        }
+        break;
       case 1: # text frame
         if ($frame["fin"]==True)
         {
-          show_message("received text frame from client socket $client_key",True);
+          # received single text frame
+          $msg=$frame["payload"];
+          $connections[$client_key]["buffer"]=array();
         }
         else
         {
-          show_message("received initial text frame of a fragmented series",True);
+          # received initial frame of a fragmented series
+          $connections[$client_key]["buffer"][]=$frame;
         }
-        show_message(var_dump_to_str($frame));
-        $connections[$client_key]["buffer"]=array();
-        $msg=$frame["payload"];
         break;
       case 8: # connection close
         if (isset($frame["close_status"])==True)
@@ -334,7 +330,7 @@ function on_msg($client_key,$data)
         }
         else
         {
-          show_message("received close frame from client socket $client_key - invalid/missing status code",True);
+          show_message("received close frame from client socket $client_key - unrecognised/missing status code",True);
           close_client($client_key);
         }
         return "";
@@ -345,8 +341,7 @@ function on_msg($client_key,$data)
       case 10: # pong
         return "";
       default:
-        show_message("received frame with unsupported opcode from client socket $client_key - terminating connection",True);
-        close_client($client_key);
+        show_message("ignored frame with unsupported opcode from client socket $client_key",True);
         return "";
     }
     if (($msg<>"") and (function_exists("ws_server_text")==True))
@@ -396,8 +391,7 @@ function broadcast_to_all($msg)
   {
     if ($conn["state"]=="OPEN")
     {
-      show_message("sending to client socket ".$key.":",True);
-      show_message(var_dump_to_str($msg));
+      show_message("sending to client socket ".$key.": ".$msg,True);
       $frame=encode_text_data_frame($msg);
       do_reply($key,$frame);
     }
@@ -408,9 +402,7 @@ function broadcast_to_all($msg)
 
 function send_text($client_key,$msg)
 {
-  global $connections;
-  show_message("sending to client socket ".$client_key.":",True);
-  show_message(var_dump_to_str($msg));
+  show_message("sending to client socket ".$client_key.": ".$msg,False);
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
   return True;
@@ -566,8 +558,12 @@ function decode_frame(&$frame_data)
 function do_reply($client_key,$msg) # $msg is an encoded websocket frame
 {
   global $sockets;
+  global $connections;
+  if ($connections[$client_key]["state"]<>"OPEN")
+  {
+    return False;
+  }
   $total_sent=0;
-  show_message("attempting to write to client socket $client_key: \"".$msg."\"",True); # todo: decode frame or trim header
   while ($total_sent<strlen($msg))
   {
     $buf=substr($msg,$total_sent);

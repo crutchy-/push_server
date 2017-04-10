@@ -15,7 +15,6 @@ function ws_pipe_data(&$params)
   }
   else
   {
-  
     $xhr_pipe=fopen(XHR_PIPE_FILE,"w+");
     if ($xhr_pipe===False)
     {
