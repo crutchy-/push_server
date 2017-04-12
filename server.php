@@ -10,6 +10,7 @@ ini_set("memory_limit","512M");
 
 register_shutdown_function("shutdown_handler");
 pcntl_signal(SIGTERM,"signal_handler"); # required for shutdown handler to be called on systemctl stop
+$shutdown_flag=True;
 
 set_error_handler("error_handler");
 
@@ -116,6 +117,7 @@ while (True)
       $data=trim(fgets(STDIN));
       if ($data=="q")
       {
+        $shutdown_flag=True;
         foreach ($sockets as $key => $socket)
         {
           if ($sockets[$key]!==$server)
@@ -158,6 +160,8 @@ while (True)
         $new_connection=array();
         $new_connection["peer_name"]=stream_socket_get_name($client,True);
         $new_connection["state"]="CONNECTING";
+        $new_connection["ping_time"]=False;
+        $new_connection["pong_time"]=False;
         $connections[$client_key]=$new_connection;
         show_message("client connected");
         if (function_exists("ws_server_connect")==True)
@@ -190,6 +194,7 @@ while (True)
         }
         if (on_msg($client_key,$data)=="quit")
         {
+          $shutdown_flag=True;
           foreach ($sockets as $key => $socket)
           {
             if ($sockets[$key]!==$server)
@@ -199,6 +204,42 @@ while (True)
           }
           break 2;
         }
+      }
+    }
+  }
+  else
+  {
+    foreach ($connections as $client_key => $connection)
+    {
+      if ($connections[$client_key]["state"]<>"OPEN")
+      {
+        continue;
+      }
+      if (($connections[$client_key]["ping_time"]!==False) and ($connections[$client_key]["pong_time"]!==False))
+      {
+        $delta=$connections[$client_key]["pong_time"]-$connections[$client_key]["ping_time"];
+        if ($delta>WEBSOCKET_CONNECTION_TIMEOUT_SEC)
+        {
+          show_message("client latency is ".$delta." sec, which exceeds limit - closing connection",True);
+          close_client($client_key);
+          continue;
+        }
+        else
+        {
+          $delta=microtime(True)-$connections[$client_key]["ping_time"];
+          if ($delta>WEBSOCKET_CONNECTION_TIMEOUT_SEC)
+          {
+            $connections[$client_key]["pong_time"]=False;
+            $connections[$client_key]["ping_time"]=False;
+          }
+        }
+      }
+      else
+      {
+        $connections[$client_key]["ping_time"]=microtime(True);
+        $ping_frame=encode_frame(9);
+        do_reply($client_key,$ping_frame);
+        #show_message("pinging client ".$client_key,True);
       }
     }
   }
@@ -339,6 +380,11 @@ function on_msg($client_key,$data)
         do_reply($client_key,$reply_frame);
         return "";
       case 10: # pong
+        if ($connections[$client_key]["ping_time"]!==False)
+        {
+          $connections[$client_key]["pong_time"]=microtime(True);
+          #show_message("received pong from client ".$client_key,True);
+        }
         return "";
       default:
         show_message("ignored frame with unsupported opcode from client socket $client_key",True);
@@ -605,11 +651,17 @@ function var_dump_to_str($var)
 
 function shutdown_handler()
 {
+  global $shutdown_flag;
   $status=shell_exec("sudo systemctl status push_server.service");
   $stopmsg="Active: deactivating (stop-sigterm)";
   if (strpos($status,$stopmsg)!==False)
   {
     show_message("<<< SYSTEMCTL STOP COMMAND DETECTED - TERMINATING >>>");
+    die;
+  }
+  if ($shutdown_flag==True)
+  {
+    show_message("<<< SHUTDOWN FLAG SET - TERMINATING >>>");
     die;
   }
   #show_message("EMAILING SYSTEM ADMINISTRATOR");
