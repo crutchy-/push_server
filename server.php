@@ -273,7 +273,9 @@ show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>
 
 function error_handler($errno,$errstr,$errfile,$errline)
 {
-  show_message("ERROR HANDLER >>> $errstr in $errfile on line $errline");
+  $msg="ERROR HANDLER >>> $errstr in $errfile on line $errline";
+  show_message($msg);
+  send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER ERROR",$msg);
   die;
 }
 
@@ -613,7 +615,16 @@ function do_reply($client_key,$msg) # $msg is an encoded websocket frame
   while ($total_sent<strlen($msg))
   {
     $buf=substr($msg,$total_sent);
-    $written=fwrite($sockets[$client_key],$buf,min(strlen($buf),8192));
+    try
+    {
+      $written=fwrite($sockets[$client_key],$buf,min(strlen($buf),8192));
+    }
+    catch (Exception $e)
+    {
+      show_message("an exception occurred when attempting to write to client socket $client_key",True);
+      close_client($client_key);
+      return;
+    }
     if (($written===False) or ($written<=0))
     {
       show_message("error writing to client socket $client_key",True);
@@ -664,8 +675,7 @@ function shutdown_handler()
     show_message("<<< SHUTDOWN FLAG SET - TERMINATING >>>");
     die;
   }
-  #show_message("EMAILING SYSTEM ADMINISTRATOR");
-  #send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER RESTART","");
+  send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER RESTART","");
   show_message("<<< RESTARTING SERVER >>>");
   shell_exec("sudo systemctl restart push_server.service");
   die;
