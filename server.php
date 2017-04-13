@@ -621,7 +621,9 @@ function do_reply($client_key,$msg) # $msg is an encoded websocket frame
     }
     catch (Exception $e)
     {
-      show_message("an exception occurred when attempting to write to client socket $client_key",True);
+      $err_msg="an exception occurred when attempting to write to client socket $client_key";
+      show_message($err_msg,True);
+      send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER EXCEPTION",$err_msg);
       close_client($client_key);
       return;
     }
