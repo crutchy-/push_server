@@ -275,7 +275,7 @@ function error_handler($errno,$errstr,$errfile,$errline)
 {
   $msg="ERROR HANDLER >>> $errstr in $errfile on line $errline";
   show_message($msg);
-  send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER ERROR",$msg);
+  send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER ERROR (error_handler)",$msg);
   die;
 }
 
@@ -623,7 +623,7 @@ function do_reply($client_key,$msg) # $msg is an encoded websocket frame
     {
       $err_msg="an exception occurred when attempting to write to client socket $client_key";
       show_message($err_msg,True);
-      send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER EXCEPTION",$err_msg);
+      send_email(ADMINISTRATOR_EMAIL,"WEBSOCKET SERVER EXCEPTION (do_reply)",$err_msg);
       close_client($client_key);
       return;
     }
