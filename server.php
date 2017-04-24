@@ -10,7 +10,7 @@ ini_set("memory_limit","512M");
 
 register_shutdown_function("shutdown_handler");
 pcntl_signal(SIGTERM,"signal_handler"); # required for shutdown handler to be called on systemctl stop
-$shutdown_flag=True;
+$shutdown_flag=False;
 
 set_error_handler("error_handler");
 
