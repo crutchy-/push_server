@@ -308,7 +308,14 @@ function on_msg($client_key,$data)
       close_client($client_key);
       return "";
     }
-    if (ws_server_authenticate($connections[$client_key],$cookies)==False)
+    $user_agent=get_header($headers,"User-Agent");
+    if ($user_agent===False)
+    {
+      show_message("client socket $client_key user agent header not found",True);
+      close_client($client_key);
+      return "";
+    }
+    if (ws_server_authenticate($connections[$client_key],$cookies,$user_agent)==False)
     {
       show_message("authentication error",True);
       close_client($client_key);
