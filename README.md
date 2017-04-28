@@ -116,7 +116,7 @@ the connection array can also contain other application-specific data that is ma
 
 syntax:
 ````
-function ws_server_authenticate(&$connection,$cookies)
+function ws_server_authenticate(&$connection,$cookies,$user_agent,$remote_address)
 ````
 
 ### ws_server_initialize event handler (optional)

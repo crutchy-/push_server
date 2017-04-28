@@ -315,7 +315,16 @@ function on_msg($client_key,$data)
       close_client($client_key);
       return "";
     }
-    if (ws_server_authenticate($connections[$client_key],$cookies,$user_agent)==False)
+    $remote_address=$connections[$client_key]["peer_name"];
+    $i=strrpos($remote_address,":");
+    if ($i===False)
+    {
+      show_message("client socket $client_key invalid peer name",True);
+      close_client($client_key);
+      return "";
+    }
+    $remote_address=substr($remote_address,0,$i);
+    if (ws_server_authenticate($connections[$client_key],$cookies,$user_agent,$remote_address)==False)
     {
       show_message("authentication error",True);
       close_client($client_key);
@@ -457,6 +466,11 @@ function broadcast_to_all($msg)
 
 function send_text($client_key,$msg)
 {
+  global $connections;
+  if ($connections[$client_key]["state"]<>"OPEN")
+  {
+    return False;
+  }
   show_message("sending to client socket ".$client_key.": ".$msg,False);
   $frame=encode_text_data_frame($msg);
   do_reply($client_key,$frame);
