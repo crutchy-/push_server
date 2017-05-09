@@ -295,8 +295,8 @@ function on_msg($client_key,$data)
   }
   if ($connections[$client_key]["state"]=="CONNECTING")
   {
-    # TODO: CHECK "Host" HEADER (COMPARE TO SERVER CONFIG SETTING)
-    # TODO: CHECK "Origin" HEADER (COMPARE TO SERVER CONFIG SETTING)
+    # TODO: CHECK "Host" HEADER (COMPARE TO "LOGIN_DOMAINS" SERVER CONFIG SETTING)
+    # TODO: CHECK "Origin" HEADER (EXTRACT HOST FROM URL & COMPARE TO "LOGIN_DOMAINS" SERVER CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
     show_message("from client socket $client_key (connecting):",True);
     show_message(var_dump_to_str($data));
