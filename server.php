@@ -615,7 +615,7 @@ function decode_frame(&$frame_data)
         continue;
       }
       $frame["payload"]=substr($frame["payload"],0,$i);
-      show_message("decode_frame warning: payload truncated");
+      show_message("decode_frame warning: payload truncated: ".$frame["payload"]);
       break;
     }
   }
