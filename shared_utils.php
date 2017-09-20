@@ -61,22 +61,32 @@ function template_fill($template_key,$params=False,$tracking=array(),$custom_tem
   }
   if (isset($template_array[$template_key])==False)
   {
-    show_message("template \"$template_key\" not found");
+    show_message("template \"".$template_key."\" not found");
   }
   if (in_array($template_key,$tracking)==True)
   {
-    show_message("circular reference to template \"$template_key\"");
+    show_message("circular reference to template \"".$template_key."\"");
   }
   $tracking[]=$template_key;
   $result=$template_array[$template_key];
   foreach ($template_array as $key => $value)
   {
-    if (strpos($result,"@@$key@@")===False)
+    if (strpos($result,"@@".$key."@@")===False)
     {
       continue;
     }
     $value=template_fill($key,False,$tracking);
-    $result=str_replace("@@$key@@",$value,$result);
+    $result=str_replace("@@".$key."@@",$value,$result);
+  }
+  $constants=get_defined_constants(True);
+  $constants=$constants["user"];
+  foreach ($constants as $name => $value)
+  {
+    if (strpos($result,"$$".$name."$$")===False)
+    {
+      continue;
+    }
+    $result=str_replace("$$".$name."$$",$value,$result);
   }
   if ($params!==False)
   {
@@ -84,7 +94,7 @@ function template_fill($template_key,$params=False,$tracking=array(),$custom_tem
     {
       if (is_array($value)==False)
       {
-        $result=str_replace("%%$key%%",$value,$result);
+        $result=str_replace("%%".$key."%%",$value,$result);
       }
     }
   }
