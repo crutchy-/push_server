@@ -63,6 +63,7 @@ $xhr_pipe=fopen(WEBSOCKET_XHR_PIPE_FILE,"r+");
 stream_set_blocking($xhr_pipe,0);
 
 $sockets=array();
+$handles=array();
 $connections=array();
 $server=stream_socket_server("tcp://".WEBSOCKET_LISTENING_ADDRESS.":".WEBSOCKET_LISTENING_PORT,$err_no,$err_msg);
 if ($server===False)
@@ -106,6 +107,18 @@ while (True)
       }
     }
   }
+  for ($i=0;$i<count($handles);$i++)
+  {
+    if (isset($handles[$i])==False)
+    {
+      continue;
+    }
+    if (handle_process($handles[$i])==False)
+    {
+      unset($handles[$i]);
+    }
+  }
+  $handles=array_values($handles);
   $read=array(STDIN);
   $write=Null;
   $except=Null;
@@ -244,6 +257,45 @@ while (True)
     }
   }
 }
+$t=microtime(True);
+$shutdown_delay=10; #seconds
+while ((microtime(True)-$t)<=$shutdown_delay)
+{
+  usleep(0.05e6); # 0.05 second to prevent cpu flogging
+  show_message("number of processes remaining: ".count($handles));
+  for ($i=0;$i<count($handles);$i++)
+  {
+    if (isset($handles[$i])===False)
+    {
+      continue;
+    }
+    if (handle_process($handles[$i])==False)
+    {
+      unset($handles[$i]);
+    }
+  }
+  $handles=array_values($handles);
+  if (count($handles)==0)
+  {
+    term_echo("*** all handles closed ***");
+    break;
+  }
+}
+$n=count($handles);
+if ($n>0)
+{
+  term_echo("*** KILLING REMAINING ".$n." HANDLE(S) ***");
+  for ($i=0;$i<$n;$i++)
+  {
+    if (isset($handles[$i])==True)
+    {
+      if (is_resource($handles[$i]["process"])==True)
+      {
+        kill_process($handles[$i]);
+      }
+    }
+  }
+}
 if (function_exists("ws_server_shutdown")==True)
 {
   ws_server_shutdown($server,$sockets,$connections);
@@ -268,6 +320,203 @@ if (function_exists("ws_server_finalize")==True)
 }
 
 show_message("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< PUSH SERVER STOPPED >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+
+#####################################################################################################
+
+function handle_process($handle)
+{
+  if (function_exists("ws_process_loop")==True)
+  {
+    ws_process_loop($handle);
+  }
+  handle_stdout($handle);
+  handle_stderr($handle);
+  $flag=False;
+  if ($handle["pipe_stdout"]===Null)
+  {
+    $flag=True;
+  }
+  else
+  {
+    $meta=stream_get_meta_data($handle["pipe_stdout"]);
+    if ($meta["eof"]==True)
+    {
+      $flag=True;
+    }
+  }
+  if ($flag==True)
+  {
+    fclose($handle["pipe_stdin"]);
+    fclose($handle["pipe_stdout"]);
+    fclose($handle["pipe_stderr"]);
+    proc_close($handle["process"]);
+    if (function_exists("ws_process_eof")==True)
+    {
+      ws_process_eof($handle);
+    }
+    return False;
+  }
+  if ($handle["timeout"]>0)
+  {
+    if ((microtime(True)-$handle["start"])>$handle["timeout"])
+    {
+      kill_process($handle);
+      show_message("process timed out: ".$handle["cmdline"]);
+      if (function_exists("ws_process_timeout")==True)
+      {
+        ws_process_timeout($handle);
+      }
+      return False;
+    }
+  }
+  return True;
+}
+
+#####################################################################################################
+
+function handle_stdout($handle)
+{
+  if (is_resource($handle["pipe_stdout"])==False)
+  {
+    return;
+  }
+  $read=array($handle["pipe_stdout"]);
+  $write=NULL;
+  $except=NULL;
+  $changed=stream_select($read,$write,$except,0);
+  if ($changed===False)
+  {
+    return;
+  }
+  if ($changed<=0)
+  {
+    return;
+  }
+  $buf=fgets($handle["pipe_stdout"]);
+  if ($buf===False)
+  {
+    return;
+  }
+  $delta=microtime(True)-$handle["start"];
+  $delta=sprintf("%.3f",$delta);
+  show_message("stdout from pid ".$handle["pid"]." [".$handle["cmdline"]."] started by client ".$handle["client_key"]." [running for ".$delta." secs]:");
+  show_message($buf);
+  if (function_exists("ws_process_stdout")==True)
+  {
+    ws_process_stdout($handle,$buf);
+  }
+}
+
+#####################################################################################################
+
+function handle_stderr($handle)
+{
+  if (is_resource($handle["pipe_stderr"])==False)
+  {
+    return;
+  }
+  $read=array($handle["pipe_stderr"]);
+  $write=NULL;
+  $except=NULL;
+  $changed=stream_select($read,$write,$except,0);
+  if ($changed===False)
+  {
+    return;
+  }
+  if ($changed<=0)
+  {
+    return;
+  }
+  $buf=fgets($handle["pipe_stderr"]);
+  if ($buf===False)
+  {
+    return;
+  }
+  $delta=microtime(True)-$handle["start"];
+  $delta=sprintf("%.3f",$delta);
+  show_message("stderr from pid ".$handle["pid"]." [".$handle["cmdline"]."] started by client ".$handle["client_key"]." [running for ".$delta." secs]:");
+  show_message($buf);
+  if (function_exists("ws_process_stderr")==True)
+  {
+    ws_process_stderr($handle,$buf);
+  }
+}
+
+#####################################################################################################
+
+function start_process($prog,$args,$timeout,&$connections,&$connection,$client_key)
+{
+  global $handles;
+  $cmdline=$prog;
+  for ($i=0;$i<count($args);$i++)
+  {
+    $cmdline.=" ".escapeshellarg($args[$i]);
+  }
+  $start=microtime(True);
+  $cwd=NULL;
+  $env=NULL;
+  $descriptorspec=array(0=>array("pipe","r"),1=>array("pipe","w"),2=>array("pipe","w"));
+  $process=proc_open($cmdline,$descriptorspec,$pipes,$cwd,$env);
+  $status=proc_get_status($process);
+  $handles[]=array(
+    "process"=>$process,
+    "prog"=>$prog,
+    "cmdline"=>$cmdline,
+    "args"=>$args,
+    "pid"=>$status["pid"],
+    "pipe_stdin"=>$pipes[0],
+    "pipe_stdout"=>$pipes[1],
+    "pipe_stderr"=>$pipes[2],
+    "timeout"=>$timeout,
+    "start"=>$start,
+    "connections"=>&$connections,
+    "connection"=>&$connection,
+    "client_key"=>$client_key);
+  stream_set_blocking($pipes[1],0);
+  stream_set_blocking($pipes[2],0);
+}
+
+#####################################################################################################
+
+function kill_process($handle)
+{
+  $lines=explode("\n",shell_exec("ps -aF"));
+  kill_recurse($handle["pid"],$lines);
+  proc_close($handle["process"]);
+  return True;
+}
+
+#####################################################################################################
+
+function kill_recurse($pid,$lines)
+{
+  for ($i=0;$i<count($lines);$i++)
+  {
+    $parts=explode(" ",trim($lines[$i]));
+    for ($j=0;$j<count($parts);$j++)
+    {
+      if (trim($parts[$j])=="")
+      {
+        unset($parts[$j]);
+      }
+    }
+    $parts=array_values($parts);
+    if (count($parts)<3)
+    {
+      continue;
+    }
+    $ipid=trim($parts[1]);
+    $ppid=trim($parts[2]);
+    if (($ppid<>$pid) or ($ipid==""))
+    {
+      continue;
+    }
+    echo "*** CHILD PROCESS FOUND: ".$lines[$i]."\n";
+    kill_recurse($ipid,$lines);
+  }
+  echo "*** KILLING PROCESS ID $pid\n";
+  posix_kill($pid,SIGKILL);
+}
 
 #####################################################################################################
 

@@ -110,6 +110,24 @@ the connection array can also contain other application-specific data that is ma
 
 ### &$frame shared argument
 
+### process &$handle shared argument
+
+````
+  process
+  prog
+  cmdline
+  args
+  pid
+  pipe_stdin
+  pipe_stdout
+  pipe_stderr
+  timeout
+  start
+  connections
+  connection
+  client_key
+````
+
 ----------------------------------------------------------------------
 
 ### ws_server_authenticate event handler (required)
@@ -138,6 +156,41 @@ function ws_server_started(&$server,&$sockets,&$connections)
 syntax:
 ````
 function ws_server_fifo(&$server,&$sockets,&$connections,&$fifo_data)
+````
+
+### ws_process_eof event handler (optional)
+
+syntax:
+````
+function ws_process_eof(&$handle)
+````
+
+### ws_process_timeout event handler (optional)
+
+syntax:
+````
+function ws_process_timeout(&$handle)
+````
+
+### ws_process_loop event handler (optional)
+
+syntax:
+````
+function ws_process_loop(&$handle)
+````
+
+### ws_process_stdout event handler (optional)
+
+syntax:
+````
+function ws_process_stdout(&$handle,$buffer)
+````
+
+### ws_process_stderr event handler (optional)
+
+syntax:
+````
+function ws_process_stderr(&$handle,$buffer)
 ````
 
 ### ws_server_loop event handler (optional)
