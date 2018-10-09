@@ -450,7 +450,38 @@ function handle_stderr($handle)
 
 #####################################################################################################
 
-function start_process($prog,$args,$timeout,&$connections,&$connection,$client_key)
+function start_process_fifo($prog,$args,$timeout)
+{
+  global $handles;
+  $cmdline=$prog;
+  for ($i=0;$i<count($args);$i++)
+  {
+    $cmdline.=" ".escapeshellarg($args[$i]);
+  }
+  $start=microtime(True);
+  $cwd=NULL;
+  $env=NULL;
+  $descriptorspec=array(0=>array("pipe","r"),1=>array("pipe","w"),2=>array("pipe","w"));
+  $process=proc_open($cmdline,$descriptorspec,$pipes,$cwd,$env);
+  $status=proc_get_status($process);
+  $handles[]=array(
+    "process"=>$process,
+    "prog"=>$prog,
+    "cmdline"=>$cmdline,
+    "args"=>$args,
+    "pid"=>$status["pid"],
+    "pipe_stdin"=>$pipes[0],
+    "pipe_stdout"=>$pipes[1],
+    "pipe_stderr"=>$pipes[2],
+    "timeout"=>$timeout,
+    "start"=>$start);
+  stream_set_blocking($pipes[1],0);
+  stream_set_blocking($pipes[2],0);
+}
+
+#####################################################################################################
+
+function start_process($prog,$args,$timeout,&$connection,$client_key)
 {
   global $handles;
   $cmdline=$prog;

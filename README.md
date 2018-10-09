@@ -70,6 +70,15 @@ to run ws server: php server.php (or use systemd service file)
 
 ----------------------------------------------------------------------
 
+## launching child processes
+
+````
+function start_process_fifo($prog,$args,$timeout)
+function start_process($prog,$args,$timeout,&$connection,$client_key)
+````
+
+----------------------------------------------------------------------
+
 ## event handlers
 
 these event handler are the interfaces by which your application interacts with the websocket server
@@ -124,9 +133,8 @@ the connection array can also contain other application-specific data that is ma
   pipe_stderr
   timeout
   start
-  connections
-  connection
-  client_key
+  connection (not applicable for fifo call)
+  client_key (not applicable for fifo call)
 ````
 
 ----------------------------------------------------------------------
