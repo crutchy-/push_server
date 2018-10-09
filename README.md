@@ -27,6 +27,7 @@ features/limitations:
 
 example settings file (all keys beginning with "WEBSOCKET_" are required):
 ````
+WEBSOCKET_ENABLE=1
 WEBSOCKET_LISTENING_ADDRESS=localhost
 WEBSOCKET_LISTENING_PORT=50000
 WEBSOCKET_SELECT_TIMEOUT=200000

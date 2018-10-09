@@ -37,6 +37,12 @@ for ($i=0;$i<count($settings);$i++)
   define($key,$val);
 }
 
+if (WEBSOCKET_ENABLE<>"1")
+{
+  show_message("WEBSOCKET SERVER NOT ENABLED IN CONF",True);
+  return;
+}
+
 if (file_exists(WEBSOCKET_EVENTS_INCLUDE_FILE)==False)
 {
   show_message("ERROR: EVENTS INCLUDE FILE NOT FOUND",True);
