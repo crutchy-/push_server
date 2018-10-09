@@ -405,7 +405,7 @@ function handle_stdout($handle)
   }
   $delta=microtime(True)-$handle["start"];
   $delta=sprintf("%.3f",$delta);
-  show_message("stdout from pid ".$handle["pid"]." [".$handle["cmdline"]."] started by client ".$handle["client_key"]." [running for ".$delta." secs]:");
+  show_message("stdout from pid ".$handle["pid"]." [".$handle["cmdline"]."] running for ".$delta." secs:");
   show_message($buf);
   if (function_exists("ws_process_stdout")==True)
   {
@@ -440,7 +440,7 @@ function handle_stderr($handle)
   }
   $delta=microtime(True)-$handle["start"];
   $delta=sprintf("%.3f",$delta);
-  show_message("stderr from pid ".$handle["pid"]." [".$handle["cmdline"]."] started by client ".$handle["client_key"]." [running for ".$delta." secs]:");
+  show_message("stderr from pid ".$handle["pid"]." [".$handle["cmdline"]."] running for ".$delta." secs:");
   show_message($buf);
   if (function_exists("ws_process_stderr")==True)
   {
