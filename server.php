@@ -405,8 +405,8 @@ function handle_stdout($handle)
   }
   $delta=microtime(True)-$handle["start"];
   $delta=sprintf("%.3f",$delta);
-  show_message("stdout from pid ".$handle["pid"]." [".$handle["cmdline"]."] running for ".$delta." secs:");
-  show_message($buf);
+  #show_message("stdout from pid ".$handle["pid"]." [".$handle["cmdline"]."] running for ".$delta." secs:");
+  #show_message($buf);
   if (function_exists("ws_process_stdout")==True)
   {
     ws_process_stdout($handle,$buf);
@@ -440,8 +440,8 @@ function handle_stderr($handle)
   }
   $delta=microtime(True)-$handle["start"];
   $delta=sprintf("%.3f",$delta);
-  show_message("stderr from pid ".$handle["pid"]." [".$handle["cmdline"]."] running for ".$delta." secs:");
-  show_message($buf);
+  #show_message("stderr from pid ".$handle["pid"]." [".$handle["cmdline"]."] running for ".$delta." secs:");
+  #show_message($buf);
   if (function_exists("ws_process_stderr")==True)
   {
     ws_process_stderr($handle,$buf);
@@ -585,7 +585,7 @@ function on_msg($client_key,$data)
     # TODO: CHECK "Origin" HEADER (EXTRACT HOST FROM URL & COMPARE TO "LOGIN_DOMAINS" SERVER CONFIG SETTING)
     # TODO: CHECK "Sec-WebSocket-Version" HEADER (MUST BE 13)
     show_message("from client socket $client_key (connecting):",True);
-    show_message(var_dump_to_str($data));
+    #show_message(var_dump_to_str($data));
     $headers=extract_headers($data);
     $cookies=get_header($headers,"Cookie");
     if ($cookies===False)
