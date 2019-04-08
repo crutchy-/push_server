@@ -153,10 +153,19 @@ function unix_to_iso_timestamp($ts)
 
 #####################################################################################################
 
-function send_email($recipient,$subject,$message)
+function send_email($recipient,$subject,$message,$from=False,$reply_to=False)
 {
-  $headers="MIME-Version: 1.0".PHP_EOL;
-  $headers=$headers."Content-type: text/html; charset=iso-8859-1".PHP_EOL;
+  $headers=array();
+  $headers["MIME-Version"]="1.0";
+  $headers["Content-type"]="text/html; charset=iso-8859-1";
+  if ($from!==False)
+  {
+    $headers["From"]=$from;
+  }
+  if ($reply_to!==False)
+  {
+    $headers["Reply-To"]=$reply_to;
+  }
   mail($recipient,$subject,$message,$headers);
 }
 
